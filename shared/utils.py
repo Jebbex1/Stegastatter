@@ -2,7 +2,7 @@ import socket
 from datetime import datetime
 
 
-def skt_addr(skt: socket.socket) -> str:
+def sock_name(skt: socket.socket) -> str:
     """
     Get socket address in the format ipv4:port
     :param skt: the socket interface we want to get the address of

@@ -1,3 +1,6 @@
+import io
+from io import BytesIO
+
 import numpy as np
 from PIL import Image
 
@@ -6,13 +9,12 @@ from server.steganography.bpcs.decode import read_message_from_vessel
 from server.steganography.bpcs.encode import embed_message_in_vessel
 
 
-def load_image(image_path: str) -> Image.Image:
+def load_image(image_bytes: bytes) -> Image.Image:
     """
     Loads an image, automatically converts it to RGB encoding.
-    :param image_path: the path of the image we want to load
     :return: a PIL image object of the image
     """
-    return Image.open(image_path).convert("RGB")
+    return Image.open(BytesIO(image_bytes)).convert("RGB")
 
 
 def write_image(out_path: str, image: Image.Image) -> None:
@@ -47,13 +49,12 @@ class BPCSImage:
     The class that manages the reading, writing, encoding, and decoding data in an PIL image object using BPCS
     steganography.
     """
-    def __init__(self, image_path: str, as_cgc: bool):
+    def __init__(self, image_bytes: bytes, as_cgc: bool):
         """
         Initializes a new instance of the BPCSImage class.
-        :param image_path: the path to the input image
         :param as_cgc: should the image be read in CGC instead of PBC?
         """
-        self.image_path = image_path
+        self.image_bytes = image_bytes
         self.as_gray = as_cgc
         self.num_of_bits_per_layer = 8
         self.pixels = self.read()
@@ -65,21 +66,22 @@ class BPCSImage:
         plane.
         :return: bit planes that describe the images pixels
         """
-        img = load_image(self.image_path)
+        img = load_image(self.image_bytes)
         pixels = image_to_array(img)
         pixels = BitPlane(pixels, self.as_gray).slice(self.num_of_bits_per_layer)
         return pixels
 
-    def write(self, out_path: str, pixels: np.ndarray) -> None:
+    def export(self, pixels: np.ndarray) -> bytes:
         """
         Writes the given image pixels to the given path.
-        :param out_path: the path of the output image
         :param pixels: the pixels that describe the image we want to write
         """
         pixels = BitPlane(pixels, self.as_gray).stack()
         img = array_to_image(pixels)
         print("Loaded new bit plane blocks as an image!")
-        write_image(out_path, img)
+        image_bytes = io.BytesIO()
+        img.save(image_bytes, format="PNG")
+        return image_bytes.getvalue()
 
     def encode(self, message_blocks: np.ndarray, message_bit_length: int, alpha: float,
                check_capacity: bool) -> np.ndarray:
@@ -92,7 +94,8 @@ class BPCSImage:
         :return: the resulting pixels after encoding
         """
         new_arr = np.array(self.pixels, copy=True)
-        return embed_message_in_vessel(new_arr, alpha, message_blocks, message_bit_length, (8, 8), check_capacity)
+        encoded_arr = embed_message_in_vessel(new_arr, alpha, message_blocks, message_bit_length, (8, 8), check_capacity)
+        return encoded_arr
 
     def decode(self, alpha: float) -> bytes:
         """

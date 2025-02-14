@@ -1,5 +1,6 @@
 import socket
 import ssl
+import time
 
 import shared.communication_protocol.transmission as transmission
 import shared.communication_protocol.packet_analyzer as analyzer
@@ -34,12 +35,6 @@ class Client:
             self.skt = self.tls_context.wrap_socket(self.skt, server_hostname=server_ipv4)
             print("TLS handshake successful")
 
-            transmission.send_packet(self.skt, b"HELLOOOOO")
-
-        except ValueError as e:
-            # intentionally raised value error - server did something that caused a problem
-            print(e)
-            self.disconnect()
         except ConnectionError:
             # server disconnected
             print("Server closed connection")
@@ -53,8 +48,3 @@ class Client:
         """
         print(f"Disconnecting from server")
         self.skt.close()
-
-
-if __name__ == '__main__':
-    client = Client()
-    client.start('127.0.0.1')

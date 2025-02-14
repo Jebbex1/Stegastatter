@@ -30,7 +30,7 @@ def show_diff(image1_path: str, image2_path: str, image_mode, output_path: str, 
                     diff.putpixel((w, h), (255, 255, 255))
 
     diff.save(output_path)
-    print("The images differ with the maximum diffrence in each pixel RGB channel as:")
+    print("The images differ with the maximum difference in each pixel RGB channel as:")
     print(f"R: {r_m} \nG: {g_m} \nB: {b_m}")
 
 

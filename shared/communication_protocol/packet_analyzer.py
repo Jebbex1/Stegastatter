@@ -8,8 +8,8 @@ HEADER_PATTERN = r"([\w-]+:[\x20-\x7E]+\x1D\x0D)"
 # a regex that matches any correctly structured packets (does not check packet parameters, only its structure)
 PACKET_PATTERN = (
     r"^("  # starts with 
-    r"\d{3}:[\w\x20]+\x1D\x0D"  # code and description
-    f"{HEADER_PATTERN}*"  # headers (zero or more)
+    r"(\d{3}:[\w\x20]+\x1D\x0D)"  # code and description
+    fr"{HEADER_PATTERN}*"  # headers (zero or more)
     r")"
     
     r".*"  # body
@@ -46,7 +46,8 @@ def get_headers_dict(packet: bytes) -> dict[bytes, bytes]:
     :param packet: the raw packet string
     :return: a dictionary of the packet headers,  dict key -> header name and dict value -> header value
     """
-    header_structure_match = re.findall(HEADER_PATTERN.encode(), packet)[1:]
+    header_num = len(structure.CODES[get_packet_code(packet)[0].decode()][1])
+    header_structure_match = re.findall(HEADER_PATTERN.encode(), packet)[1:header_num+1]
     headers_dict = {}
     for match in header_structure_match:
         segments = match.split(b":")
@@ -56,7 +57,8 @@ def get_headers_dict(packet: bytes) -> dict[bytes, bytes]:
 
 
 def get_body(packet: bytes) -> bytes:
-    return re.split(HEADER_PATTERN.encode(), packet)[-1][:-1]
+    header_num = len(structure.CODES[get_packet_code(packet)[0].decode()][1])
+    return b"\x1d\x0d".join(packet.split(structure.SEP)[header_num+1:])[:-1]
 
 
 def parse_packet_bytes(packet: bytes) -> tuple[tuple[bytes, bytes], dict[bytes, bytes], bytes]:
@@ -98,7 +100,7 @@ def is_consistent_packet(packet: PacketInfo) -> bool:
     code, desc = packet.code, packet.desc
     headers = packet.headers
     try:
-        if structure.CODES[code.decode()][0] != desc:
+        if structure.CODES[code.decode()][0] != desc.decode():
             return False
         for header_name in structure.CODES[code.decode()][1]:
             if header_name.encode() not in headers.keys():

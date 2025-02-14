@@ -11,7 +11,7 @@ def build_header(name: str, value: str | int | float) -> bytes:
     return name.encode() + b":" + str(value).encode() + structure.SEP
 
 
-def build_packet(code: str, headers: dict[str, str] | None) -> bytes:
+def build_packet(code: str, headers: dict[str, str] | None = None) -> bytes:
     """
     Builds a packet in the shared' structure
     :param code: the packets' code
