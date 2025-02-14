@@ -2,9 +2,9 @@ import socket
 import ssl
 import time
 
-import shared.communication_protocol.transmission as transmission
-import shared.communication_protocol.packet_analyzer as analyzer
-import shared.communication_protocol.packet_builder as builder
+from shared.communication_protocol.transmission import PORT, send_packet, recv_packet
+from shared.communication_protocol.packet_analyzer import PacketInfo
+from shared.communication_protocol.packet_builder import build_packet
 from shared import utils
 
 
@@ -12,6 +12,7 @@ class Client:
     """
     A basic client that knows how to communicate with the server
     """
+
     def __init__(self):
         """
         Initializes the server socket, along with the ssl/tls wrapper.
@@ -30,10 +31,28 @@ class Client:
         """
         try:
             print("Connecting to server...")
-            self.skt.connect((server_ipv4, transmission.PORT))  # initial connection
+            self.skt.connect((server_ipv4, PORT))  # initial connection
             print("Connection successful")
             self.skt = self.tls_context.wrap_socket(self.skt, server_hostname=server_ipv4)
             print("TLS handshake successful")
+
+            params_dict = {"encryption-key": "hello there",
+                           "ecc-block-size": "255",
+                           "ecc-symbol-num": "16",
+                           "alpha": "0.3", }
+
+            message = b"helooooo"
+
+            request = build_packet("100", headers=params_dict, body=message)
+            vessel = build_packet("000", body=(open("assets/message.txt", "rb").read()))
+
+            send_packet(self.skt, request)
+            send_packet(self.skt, vessel)
+
+            token = recv_packet(self.skt).body
+            stegged = recv_packet(self.skt).body
+
+            open("assets/out1.png", "wb").write(stegged)
 
         except ConnectionError:
             # server disconnected

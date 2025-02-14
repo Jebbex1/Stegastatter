@@ -12,7 +12,7 @@ PACKET_PATTERN = (
     fr"{HEADER_PATTERN}*"  # headers (zero or more)
     r")"
     
-    r".*"  # body
+    r"[\x00-\xFF]*"  # body
     r"(\x04)$"  # ends with EOT
     # \x20-\x7E represents eve ascii character between space and ~
 ).encode()
@@ -79,6 +79,10 @@ class PacketInfo:
         self.raw_packet = packet
         if not is_consistent_packet(self):
             raise PacketStructureError("Packet contents are not consistent")
+
+    def verify_code(self, expected: str) -> None:
+        if self.code.decode() != expected:
+            raise PacketStructureError(f"Invalid packet code, expected {expected} and got {self.code.decode()}")
 
     def __str__(self) -> str:
         """

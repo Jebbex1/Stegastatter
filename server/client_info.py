@@ -9,18 +9,18 @@ from shared.communication_protocol.packet_builder import build_packet
 
 class ClientInfo:
     def __init__(self, client_skt: socket.socket):
-        self.skt: socket.socket | ssl.SSLSocket = client_skt
-        self.name = sock_name(self.skt)
+        self.socket: socket.socket | ssl.SSLSocket = client_skt
+        self.name = sock_name(self.socket)
 
     def update_status(self, status: str):
-        send_packet(self.skt, build_packet("201", {"status": status}))
+        send_packet(self.socket, build_packet("201", {"status": status}))
 
     def disconnect(self, disconnect_packet: bytes | None):
         logger = logging.getLogger("server_console")
         logger.info(f"Disconnecting client {self.name}")
         if disconnect_packet is not None:
             try:
-                send_packet(self.skt, disconnect_packet)
+                send_packet(self.socket, disconnect_packet)
             except (ConnectionError, ssl.SSLError):
                 pass
-        self.skt.close()
+        self.socket.close()

@@ -1,12 +1,14 @@
 import io
 from io import BytesIO
 
+import PIL
 import numpy as np
 from PIL import Image
 
 from server.steganography.bpcs.bit_plane import BitPlane
 from server.steganography.bpcs.decode import read_message_from_vessel
 from server.steganography.bpcs.encode import embed_message_in_vessel
+from server.steganography.steganography_errors import SteganographyError
 
 
 def load_image(image_bytes: bytes) -> Image.Image:
@@ -14,7 +16,10 @@ def load_image(image_bytes: bytes) -> Image.Image:
     Loads an image, automatically converts it to RGB encoding.
     :return: a PIL image object of the image
     """
-    return Image.open(BytesIO(image_bytes)).convert("RGB")
+    try:
+        return Image.open(BytesIO(image_bytes)).convert("RGB")
+    except PIL.UnidentifiedImageError:
+        raise SteganographyError("The client's sent vessel bytes were not valid image bytes")
 
 
 def write_image(out_path: str, image: Image.Image) -> None:

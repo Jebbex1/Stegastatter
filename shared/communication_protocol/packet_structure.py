@@ -13,19 +13,19 @@ END = b"\x04"  # end of packet marker
 """
 CODES: dict[str, tuple[str, list[str]]] = {
     # 0xx: Informational, file uploads
-    "000": ("Image upload",
+    "000": ("Vessel upload",
             []),
 
 
     # 1xx: Client requests and related (only client sends)
-    "100": ("BPCS steganography encoding request",  # followed by image upload
+    "100": ("BPCS steganography encoding request",  # message in body, followed by vessel upload
             [
                 "encryption-key",
                 "ecc-block-size",
                 "ecc-symbol-num",
                 "alpha",
             ]),
-    "101": ("BPCS steganography decoding request",  # token in body, followed by image upload
+    "150": ("BPCS steganography decoding request",  # token in body, followed by vessel upload
             []),
 
     # 2xx: Server replies, updates and related (only server sends)
@@ -54,6 +54,8 @@ CODES: dict[str, tuple[str, list[str]]] = {
             [
                 "description",
             ]),
+    "403": ("There is an existing client from this address and port",
+            []),
 
 
     # 5xx: Protocol and non-side specific errors (allways followed by disconnecting)

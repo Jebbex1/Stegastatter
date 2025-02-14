@@ -5,8 +5,8 @@ from shared.communication_protocol.packet_analyzer import PacketInfo
 
 PORT = 8374  # shared port
 CHARSET = 'utf-8'
-LFS = 48  # length field size
-RECV_BUFFER_SIZE = 128000
+LFS = 20  # length field size
+RECV_BUFFER_SIZE = 128
 
 
 def recv_packet(skt: socket.socket) -> PacketInfo:
@@ -22,11 +22,11 @@ def recv_packet(skt: socket.socket) -> PacketInfo:
     length = int(length)
 
     packet = b""
-    while length > RECV_BUFFER_SIZE:
+    remaining_length = length
+    while remaining_length > RECV_BUFFER_SIZE:
         packet += skt.recv(RECV_BUFFER_SIZE)
-        length -= RECV_BUFFER_SIZE
-
-    packet += skt.recv(length)
+        remaining_length -= RECV_BUFFER_SIZE
+    packet += skt.recv(length-len(packet))
 
     return PacketInfo(packet)
 
