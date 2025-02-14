@@ -1,9 +1,9 @@
 import numpy as np
 from PIL import Image
 
-from bpcs.bit_plane import BitPlane
-from bpcs.decode import read_message_from_vessel
-from bpcs.encode import embed_message_in_vessel
+from server.steganography.bpcs.bit_plane import BitPlane
+from server.steganography.bpcs.decode import read_message_from_vessel
+from server.steganography.bpcs.encode import embed_message_in_vessel
 
 
 def load_image(image_path: str) -> Image.Image:

@@ -1,10 +1,10 @@
 import numpy as np
 
-from bpcs.dimension_computing import compute_all_block_indices
-from bpcs.block_operations import bits_to_bytes, blocks_to_bits
-from bpcs.bpcs_errors import BPCSDecodeError
-from bpcs.core import calc_bpcs_complexity_coefficient, conjugate
-from bpcs.initilization_vector import slice_iv_from_accepted_blocks, slice_conj_blocks_from_accepted_blocks
+from server.steganography.bpcs.dimension_computing import compute_all_block_indices
+from server.steganography.bpcs.block_operations import bits_to_bytes, blocks_to_bits
+from server.steganography.bpcs.bpcs_errors import BPCSDecodeError
+from server.steganography.bpcs.core import calc_bpcs_complexity_coefficient, conjugate
+from server.steganography.bpcs.initilization_vector import slice_iv_from_accepted_blocks, slice_conj_blocks_from_accepted_blocks
 
 
 def get_decoding_info_from_accepted_blocks(accepted_blocks: np.ndarray, block_shape: tuple[int, int],

@@ -1,7 +1,7 @@
-import errors
+from server.steganography.steganography_errors import SteganographyError
 
 
-class BPCSError(errors.SteganographyError):
+class BPCSError(SteganographyError):
     """
     The parent error of all BPCS related errors.
     """

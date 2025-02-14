@@ -1,9 +1,9 @@
 import math
 
-from bpcs.bpcs_image import BPCSImage
-from bpcs.encode import get_message_blocks_from_bytes
-from bpcs.capacity import calculate_if_fits
-from content_wrapper.wrapper import wrap_bpcs, get_bpcs_token_info, unwrap
+from server.steganography.bpcs.bpcs_image import BPCSImage
+from server.steganography.bpcs.encode import get_message_blocks_from_bytes
+from server.steganography.bpcs.capacity import calculate_if_fits
+from server.steganography.content_wrapper.wrapper import wrap_bpcs, get_bpcs_token_info, unwrap
 
 
 def encode(source_image_path: str, message: bytes, output_file_path: str, key: bytes, ecc_block_size: int = 255,

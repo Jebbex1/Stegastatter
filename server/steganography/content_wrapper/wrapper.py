@@ -1,8 +1,8 @@
 import struct
 
-from content_wrapper.aes_gcm import encrypt, decrypt
-from content_wrapper.reed_solomon import pad, unpad
-from errors import ContentWrapperError
+from server.steganography.content_wrapper.aes_gcm import encrypt, decrypt
+from server.steganography.content_wrapper.reed_solomon import pad, unpad
+from server.steganography.steganography_errors import ContentWrapperError
 
 """
 Every parameter but the key has a constant length due to its' algorithms restraints:

@@ -1,8 +1,8 @@
 import math
 import numpy as np
 
-from bpcs.core import calc_bpcs_complexity_coefficient
-from bpcs.dimension_computing import compute_all_block_indices
+from server.steganography.bpcs.core import calc_bpcs_complexity_coefficient
+from server.steganography.bpcs.dimension_computing import compute_all_block_indices
 
 
 def count_accepted_blocks(vessel_blocks: np.ndarray, image_shape: tuple[int, int, int, int],

@@ -3,7 +3,7 @@ import builtins
 from typing import Generator
 import numpy as np
 
-from bpcs.bpcs_errors import BPCSError
+from server.steganography.bpcs.bpcs_errors import BPCSError
 
 
 def xor_lists(a: list[bool], b: list[bool]) -> list[bool]:

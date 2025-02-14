@@ -1,6 +1,6 @@
 from typing import Generator, Any
 
-from bpcs.bpcs_errors import BPCSError
+from server.steganography.bpcs.bpcs_errors import BPCSError
 
 
 def compute_segment_division_indices(total_length: int, segment_length: int) -> list[zip]:

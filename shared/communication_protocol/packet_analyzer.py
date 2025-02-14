@@ -1,7 +1,7 @@
 import re
 
 import shared.communication_protocol.packet_structure as structure
-from shared.communication_protocol.communication_errors import CommunicationError
+from shared.communication_protocol.communication_errors import CommunicationError, PacketStructureError
 
 HEADER_PATTERN = r"([\w-]+:[\x20-\x7E]+\x1D\x0D)"
 
@@ -61,7 +61,7 @@ def get_body(packet: bytes) -> bytes:
 
 def parse_packet_bytes(packet: bytes) -> tuple[tuple[bytes, bytes], dict[bytes, bytes], bytes]:
     if not is_valid_packet_structure(packet):
-        raise CommunicationError("Invalid packet structure")
+        raise PacketStructureError("Invalid packet structure")
     code_segments = get_packet_code(packet)
     headers_dict = get_headers_dict(packet)
     body = get_body(packet)
@@ -76,7 +76,7 @@ class PacketInfo:
         (self.code, self.desc), self.headers, self.body = parse_packet_bytes(packet)
         self.raw_packet = packet
         if not is_consistent_packet(self):
-            raise CommunicationError("Packet contents are not consistent")
+            raise PacketStructureError("Packet contents are not consistent")
 
     def __str__(self) -> str:
         """
@@ -106,13 +106,3 @@ def is_consistent_packet(packet: PacketInfo) -> bool:
         return True
     except KeyError:
         return False
-
-
-if __name__ == '__main__':
-    p = (b"000:hello\x1d\x0d"
-         b"hi:fgisef\x1d\x0d"
-         b"hree:rb\x1d\x0d"
-         b"fawf:\x1d\x0d"
-         b"fasefasef\x04")
-    pi = PacketInfo(p)
-    print(pi)
