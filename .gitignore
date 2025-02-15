@@ -1,8 +1,11 @@
-.idea
+.idea/
 main.py
-steganalysis
+steganalysis/
 test.py
 *.png
+test_assests/
+token.bin
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
