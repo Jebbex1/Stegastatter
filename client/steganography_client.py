@@ -19,7 +19,7 @@ class Client:
         """
         self.skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        self.tls_context.load_verify_locations("shared/certificate-authority/ca-cert.pem")
+        self.tls_context.load_verify_locations("shared/certificate_authority/ca-cert.pem")
         self.tls_context.minimum_version = ssl.TLSVersion.TLSv1_3
 
     def start(self, server_ipv4: str) -> None:
