@@ -116,6 +116,7 @@ class Server:
         or ssl/tls errors.
         :param client_skt: the socket interface to wrap with a ssl/tls layer
         """
+        client_skt.settimeout(10)
         client = ClientInfo(client_skt)
         try:
             if client.name in self.clients:
@@ -138,6 +139,9 @@ class Server:
         except ConnectionError:
             # if raised, the connection is dead
             self.logger.warning(f"Client {client.name} closed the connection unexpectedly")
+            client.disconnect(None)
+        except TimeoutError:
+            self.logger.warning(f"Client {client.name} took too long to respond.")
             client.disconnect(None)
         except ssl.SSLError as e:
             # if raised, the connection is dead
@@ -163,5 +167,8 @@ class Server:
                              f"closing the connection, and terminating client handler thread")
             client.disconnect(build_packet("500", {"reason": "end of communication"}))
         finally:
-            self.clients.remove(client.name)
+            try:
+                self.clients.remove(client.name)
+            except KeyError:
+                pass
             self.logger.info(f"Finished handling client {client.name}")
