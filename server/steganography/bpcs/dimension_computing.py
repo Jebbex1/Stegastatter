@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Generator, Any
 
 from server.steganography.bpcs.bpcs_errors import BPCSError
@@ -31,6 +33,7 @@ def compute_all_block_indices(image_shape: tuple[int, int, int, int],
     slice(x_start, x_end, None), slice(y_start, y_end, None), channel_num, bit_plane_index
     :raises BPCSError: if given an image object with an incorrect shape
     """
+    update_logger = logging.getLogger(str(threading.get_ident()))
     if len(image_shape) != 4:
         raise BPCSError(f"Image shape does not match: (width, height, channel number, bits per channel value). "
                         f"Given shape: {image_shape}")
@@ -38,9 +41,9 @@ def compute_all_block_indices(image_shape: tuple[int, int, int, int],
     x_segments = compute_segment_division_indices(image_shape[0], block_shape[0])
     y_segments = compute_segment_division_indices(image_shape[1], block_shape[1])
 
-    num_of_total_grids = (image_shape[2] * image_shape[3] * len(x_segments) * len(y_segments))
+    num_of_total_blocks = (image_shape[2] * image_shape[3] * len(x_segments) * len(y_segments))
 
-    print(f"Found {num_of_total_grids} blocks of shape {block_shape} in the image.")
+    update_logger.info(f"Found {num_of_total_blocks} blocks of shape {block_shape} in the image.")
 
     i = 0
     for bit_index in reversed(range(image_shape[3])):  # each bit index from lsb -> msb
@@ -49,5 +52,5 @@ def compute_all_block_indices(image_shape: tuple[int, int, int, int],
                 for (y_left, y_right) in y_segments:  # height
                     i += 1
                     if i % 10000 == 0:
-                        print(f"Block #{i} of {num_of_total_grids}")
+                        update_logger.info(f"Block #{i} of {num_of_total_blocks}")
                     yield [slice(x_left, x_right), slice(y_left, y_right)] + [channel_index, bit_index]

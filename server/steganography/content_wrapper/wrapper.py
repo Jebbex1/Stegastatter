@@ -1,4 +1,6 @@
+import logging
 import struct
+import threading
 
 from server.steganography.content_wrapper.aes_gcm import encrypt, decrypt
 from server.steganography.content_wrapper.reed_solomon import pad, unpad
@@ -34,12 +36,18 @@ def wrap_bpcs(plaintext: bytes, key: bytes, ecc_block_size: int, ecc_symbol_num:
     :return: the wrapped plaintext, and the matching token
     :raises TokenError: if the created token is invalid
     """
+    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger.info("Wrapping data to be encoded with BPCS...")
+    update_logger.info("Encrypting data...")
     encrypted, verification_tag, nonce, update_header, key = encrypt(plaintext, key)
+    update_logger.info("Padding data with error correction...")
     wrapped = pad(encrypted, ecc_block_size, ecc_symbol_num)
+    update_logger.info("Generating token...")
     token = (ecc_block_size.to_bytes(1) + ecc_symbol_num.to_bytes(1) +
              verification_tag + nonce + update_header + struct.pack("d", min_alpha) + key)
     if not len(token) == (50 + len(key)):
         raise TokenError("Token creating parameters are invalid.")
+    update_logger.info("Wrapping completed!")
     return bytes(wrapped), token
 
 
@@ -51,6 +59,8 @@ def get_bpcs_token_info(token: bytes):
     (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key), min_alpha
     :raises TokenError: if the token is invalid
     """
+    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger.info("Extracting data from BPCS token...")
     if not len(token) >= 50:
         raise TokenError("Token length is invalid. Token length must be equal to or greater than 42 bytes.")
     ecc_block_size, token = ord(token[:1]), token[1:]
@@ -60,6 +70,7 @@ def get_bpcs_token_info(token: bytes):
     update_header, token = token[:8], token[8:]
     min_alpha, token = struct.unpack("d", token[:8])[0], token[8:]
     key = token
+    update_logger.info("Data extraction completed!")
     return (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key), min_alpha
 
 
@@ -79,5 +90,11 @@ def unwrap(wrapped: bytes, ecc_block_size: int, ecc_symbol_num: int, verificatio
     algorithm to fix
     :raises ContentWrapperError: if the decryption process fails
     """
+    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger.info("Unwrapping decoded data...")
+    update_logger.info("Unpadding data...")
     ciphertext = unpad(wrapped, ecc_block_size, ecc_symbol_num)
-    return decrypt(ciphertext, key, verification_tag, nonce, update_header)
+    update_logger.info("Decrypting data...")
+    dec = decrypt(ciphertext, key, verification_tag, nonce, update_header)
+    update_logger.info("Unwrapping completed!")
+    return dec

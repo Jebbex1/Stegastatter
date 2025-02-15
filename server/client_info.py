@@ -12,8 +12,9 @@ class ClientInfo:
         self.socket: socket.socket | ssl.SSLSocket = client_skt
         self.name = sock_name(self.socket)
 
-    def update_status(self, status: str):
-        send_packet(self.socket, build_packet("201", {"status": status}))
+    def update_status(self, record: logging.LogRecord):
+        send_packet(self.socket, build_packet("201", {"status": record.getMessage()}))
+        return True
 
     def disconnect(self, disconnect_packet: bytes | None):
         logger = logging.getLogger("server_console")

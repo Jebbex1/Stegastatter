@@ -39,7 +39,6 @@ def check_if_fits_from_bytes(source_image_bytes: bytes, message: bytes, ecc_bloc
     message_length = len(message)
     wrapped_length = math.ceil(ecc_block_size*((message_length+16)/(ecc_block_size-ecc_symbol_num)))
     image_shape = img.pixels.shape
-    print(wrapped_length)
     return calculate_if_fits(img.pixels, image_shape, alpha, wrapped_length * 8)
 
 

@@ -1,3 +1,6 @@
+import logging
+import threading
+
 import numpy as np
 
 from server.steganography.bpcs.dimension_computing import compute_all_block_indices
@@ -64,11 +67,12 @@ def read_message_from_vessel(vessel_blocks: np.ndarray, alpha: float, block_shap
     :return: the decoded message in bytes
     :raises BPCSDecodeError: if there is a mismatch between the iv, conj map, and image blocks info
     """
-    print("Starting reading process...")
+    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger.info("Starting reading process...")
     accepted_blocks = []
     bit_planes = compute_all_block_indices(vessel_blocks.shape, block_shape)
 
-    print("Extracting blocks with an appropriate complexity coefficient from image blocks...")
+    update_logger.info("Extracting blocks with an appropriate complexity coefficient from image blocks...")
     # get all accepted blocks (every block that has a >= alpha0)
     for bit_plane in bit_planes:
         block = vessel_blocks[tuple(bit_plane)]
@@ -77,7 +81,7 @@ def read_message_from_vessel(vessel_blocks: np.ndarray, alpha: float, block_shap
 
     accepted_blocks = np.reshape(accepted_blocks, (len(accepted_blocks),) + block_shape)
 
-    print("Extracting initialization vector and conjugation map blocks from accepted blocks...")
+    update_logger.info("Extracting initialization vector and conjugation map blocks from accepted blocks...")
     message_block_length, message_remnant_bits_num, conjugation_map, remaining_blocks = (
         get_decoding_info_from_accepted_blocks(accepted_blocks, block_shape, alpha))
 
@@ -92,8 +96,8 @@ def read_message_from_vessel(vessel_blocks: np.ndarray, alpha: float, block_shap
                               f"{message_remnant_bits_num}, this is not possible since the message can only take "
                               f"{block_shape[0] * block_shape[1]} bits per block. Not more.")
 
-    print("Using decoding info to extract message from accepted blocks...")
+    update_logger.info("Using decoding info to extract message from accepted blocks...")
     message = decode_message_from_remaining_blocks(remaining_blocks, message_block_length, message_remnant_bits_num,
                                                    conjugation_map, block_shape)
-    print("Reading process finished!")
+    update_logger.info("Reading process finished!")
     return message

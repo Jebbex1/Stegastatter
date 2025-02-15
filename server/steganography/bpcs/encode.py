@@ -1,3 +1,6 @@
+import logging
+import threading
+
 import numpy as np
 
 from server.steganography.bpcs.block_operations import bytes_to_blocks
@@ -52,34 +55,35 @@ def embed_message_in_vessel(vessel_blocks: np.ndarray, alpha: float, message_blo
     :raises BPCSError: if given an incorrect complexity coefficient threshold
     :raises BPCSCapacityError: if the vessel blocks don't have enough capacity to embed all the needed data
     """
-    print("Starting embedding process...")
+    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger.info("Starting embedding process...")
 
     if not 0 <= alpha <= 0.5:
-        raise BPCSError('The minimum complexity coefficient must be between 0 and 0.5')
+        raise BPCSError("The minimum complexity coefficient must be between 0 and 0.5")
 
-    print("Counting accepted blocks number...")
+    update_logger.info("Counting accepted blocks number...")
     accepted_blocks_num = count_accepted_blocks(vessel_blocks, vessel_blocks.shape, block_shape, alpha)
 
     if check_capacity:
-        print("Checking image capacity...")
+        update_logger.info("Checking image capacity...")
         if calculate_embedding_blocks_num(accepted_blocks_num, block_shape, alpha,
                                           message_bit_length) <= accepted_blocks_num:
-            print("Image has enough capacity of the embedding data!")
+            update_logger.info("Image has enough capacity of the embedding data!")
         else:
-            print("Image does not have enough capacity of the embedding data.")
-            raise BPCSCapacityError("Image does not have enough capacity of the embedding data!")
+            update_logger.warning("Image does not have enough capacity of the embedding data!")
+            raise BPCSCapacityError("Image does not have enough capacity of the embedding data")
 
-    print("Building initialization vector blocks...")
+    update_logger.info("Building initialization vector blocks...")
     iv_blocks = build_iv_blocks(accepted_blocks_num, block_shape, alpha, message_bit_length)
 
-    print("Building conjugation map blocks...")
+    update_logger.info("Building conjugation map blocks...")
     message_blocks, conj_map = get_conjugated_blocks_and_data(message_blocks)
 
     conjugation_blocks = build_conjugation_blocks(conj_map, block_shape, alpha)
 
     embedding_blocks = np.concatenate([iv_blocks, conjugation_blocks, message_blocks])
 
-    print("Embedding blocks in image blocks")
+    update_logger.info("Embedding blocks in image blocks")
     embedding_block_index = 0
     bit_plane_dims = compute_all_block_indices(vessel_blocks.shape, block_shape)
     for bit_plane in bit_plane_dims:
@@ -94,5 +98,5 @@ def embed_message_in_vessel(vessel_blocks: np.ndarray, alpha: float, message_blo
     if embedding_block_index < len(embedding_blocks):
         raise BPCSCapacityError("Image does not have enough capacity of the embedding data!")
 
-    print("Finished embedding process!")
+    update_logger.info("Finished embedding process!")
     return vessel_blocks

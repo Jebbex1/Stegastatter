@@ -1,4 +1,6 @@
 import io
+import logging
+import threading
 from io import BytesIO
 
 import PIL
@@ -9,6 +11,7 @@ from server.steganography.bpcs.bit_plane import BitPlane
 from server.steganography.bpcs.decode import read_message_from_vessel
 from server.steganography.bpcs.encode import embed_message_in_vessel
 from server.steganography.steganography_errors import SteganographyError
+from shared.communication_protocol.communication_errors import PacketContentsError
 
 
 def load_image(image_bytes: bytes) -> Image.Image:
@@ -19,7 +22,7 @@ def load_image(image_bytes: bytes) -> Image.Image:
     try:
         return Image.open(BytesIO(image_bytes)).convert("RGB")
     except PIL.UnidentifiedImageError:
-        raise SteganographyError("The client's sent vessel bytes were not valid image bytes")
+        raise PacketContentsError("Expected image bytes, got otherwise")
 
 
 def write_image(out_path: str, image: Image.Image) -> None:
@@ -59,11 +62,12 @@ class BPCSImage:
         Initializes a new instance of the BPCSImage class.
         :param as_cgc: should the image be read in CGC instead of PBC?
         """
+        update_logger = logging.getLogger(str(threading.get_ident()))
         self.image_bytes = image_bytes
         self.as_gray = as_cgc
         self.num_of_bits_per_layer = 8
         self.pixels = self.read()
-        print(f"Loaded image as array with shape {self.pixels.shape}")
+        update_logger.info(f"Loaded image as array with shape {self.pixels.shape}")
 
     def read(self) -> np.ndarray:
         """
@@ -81,9 +85,10 @@ class BPCSImage:
         Writes the given image pixels to the given path.
         :param pixels: the pixels that describe the image we want to write
         """
+        update_logger = logging.getLogger(str(threading.get_ident()))
         pixels = BitPlane(pixels, self.as_gray).stack()
         img = array_to_image(pixels)
-        print("Loaded new bit plane blocks as an image!")
+        update_logger.info("Loaded new bit plane blocks as an image!")
         image_bytes = io.BytesIO()
         img.save(image_bytes, format="PNG")
         return image_bytes.getvalue()

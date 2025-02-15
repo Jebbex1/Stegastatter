@@ -1,5 +1,7 @@
 import itertools
 import builtins
+import logging
+import threading
 from typing import Generator
 import numpy as np
 
@@ -39,7 +41,8 @@ def pbc_to_cgc(pixels: np.ndarray) -> np.ndarray:
     :param pixels: an array describing the pixels that uses PBC to represent values
     :return: an array of pixels that uses CGC to represent values instead of PBC
     """
-    print("Converting values from PBC to CGC...")
+    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger.info("Converting values from PBC to CGC...")
 
     def pbc_to_cgc_mapper(planes):
         new_planes = []
@@ -60,7 +63,8 @@ def cgc_to_pbc(arr: np.ndarray) -> np.ndarray:
     :param arr: n array of pixels that uses CGC to represent values
     :return: an array of pixels that uses PBC to represent values instead of CGC
     """
-    print("Converting values from CGC to PBC...")
+    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger.info("Converting values from CGC to PBC...")
 
     def cgc_to_pbc_mapper(planes):
         new_planes = []
@@ -115,7 +119,8 @@ class BitPlane:
         :param bit_num: the number of bits that each binary value should have
         :return: the converted numpy ndarray
         """
-        print('Slicing image into bit plane blocks...')
+        update_logger = logging.getLogger(str(threading.get_ident()))
+        update_logger.info("Slicing image into bit plane blocks...")
 
         # reshape to a 1d list binary bit vals
         base_array = np.array([decimal_to_bit_list(i, bit_num) for i in self.arr.reshape(-1)])
@@ -132,6 +137,7 @@ class BitPlane:
         a decimal value instead of a bit-list. Also, converts self.arr back to PBC if self.gray is True. Keeps the
         shape of self.arr.
         """
+        update_logger = logging.getLogger(str(threading.get_ident()))
         temp_array = self.arr
         if self.gray:
             temp_array = cgc_to_pbc(temp_array)
@@ -141,7 +147,7 @@ class BitPlane:
             for ind in itertools.product(*all_indices[:-1]):
                 yield ind
 
-        print('Stacking bit plane blocks into an image...')
+        update_logger.info("Stacking bit plane blocks into an image...")
         temp_array = np.reshape([bit_list_to_decimal(temp_array[ind]) for ind in iterate_all_but_last_dim(temp_array)],
                                 temp_array.shape[:-1])
         return temp_array

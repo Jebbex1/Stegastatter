@@ -1,7 +1,7 @@
 import re
 
 import shared.communication_protocol.packet_structure as structure
-from shared.communication_protocol.communication_errors import CommunicationError, PacketStructureError
+from shared.communication_protocol.communication_errors import PacketContentsError, PacketStructureError
 
 HEADER_PATTERN = r"([\w-]+:[\x20-\x7E]+\x1D\x0D)"
 
@@ -78,11 +78,11 @@ class PacketInfo:
         (self.code, self.desc), self.headers, self.body = parse_packet_bytes(packet)
         self.raw_packet = packet
         if not is_consistent_packet(self):
-            raise PacketStructureError("Packet contents are not consistent")
+            raise PacketContentsError("Packet contents are not consistent with the packets code")
 
     def verify_code(self, expected: str) -> None:
         if self.code.decode() != expected:
-            raise PacketStructureError(f"Invalid packet code, expected {expected} and got {self.code.decode()}")
+            raise PacketContentsError(f"Unexpected packet code, expected {expected}, got {self.code.decode()}")
 
     def __str__(self) -> str:
         """
@@ -91,7 +91,7 @@ class PacketInfo:
         code_line = f"Code header: {self.code.decode()}:{self.desc.decode()}\n"
         header_lines = [f"Header: {title.decode()}:{value.decode()}\n" for title, value in self.headers.items()]
         header_line = "".join(header_lines)
-        body_line = f"Body: {repr(self.body.decode())}"
+        body_line = f"Body: {repr(self.body)}"
         return code_line + header_line + body_line
 
 

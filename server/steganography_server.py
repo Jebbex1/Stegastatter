@@ -11,7 +11,8 @@ from shared.communication_protocol.packet_builder import build_packet
 from server.steganography.steganography_errors import SteganographyError, ContentWrapperError
 from shared.communication_protocol.packet_analyzer import PacketInfo
 from shared.utils import sock_name
-from shared.communication_protocol.communication_errors import TransmissionProtocolError, PacketStructureError
+from shared.communication_protocol.communication_errors import TransmissionProtocolError, PacketStructureError, \
+    PacketContentsError
 from server.client_info import ClientInfo
 from server.steganography.bpcs.engine import encode, decode
 
@@ -19,23 +20,55 @@ from server.steganography.bpcs.engine import encode, decode
 def handle_bpcs_encoding_request(client: ClientInfo, request_packet: PacketInfo):
     request_packet.verify_code("100")
     message = request_packet.body
-    steg_params = request_packet.headers
+    params_dict = request_packet.headers
 
     vessel_packet = recv_packet(client.socket)
     vessel_packet.verify_code("000")
     vessel_bytes = vessel_packet.body
 
+    try:
+        key = params_dict[b"encryption-key"]
+        ecc_block_size = int(params_dict[b"ecc-block-size"])
+        ecc_symbol_num = int(params_dict[b"ecc-symbol-num"])
+        alpha = float(params_dict[b"alpha"])
+    except ValueError as e:
+        raise PacketContentsError(f"Packet header types are invalid: {e}")
+
     send_packet(client.socket, build_packet("200"))
 
-    token, stegged_bytes = encode(vessel_bytes, message, steg_params[b"encryption-key"],
-                                  ecc_block_size=int(steg_params[b"ecc-block-size"]),
-                                  ecc_symbol_num=int(steg_params[b"ecc-symbol-num"]),
-                                  alpha=float(steg_params[b"alpha"]))
+    client_update_logger = logging.getLogger(str(threading.get_ident()))
+    client_update_logger.setLevel(logging.INFO)
+    client_update_logger.addFilter(client.update_status)
+
+    stegged_bytes, token = encode(vessel_bytes, message, key, ecc_block_size=ecc_block_size,
+                                  ecc_symbol_num=ecc_symbol_num, alpha=alpha)
 
     token_packet = build_packet("202", body=token)
     stegged_packet = build_packet("000", body=stegged_bytes)
+
     send_packet(client.socket, token_packet)
     send_packet(client.socket, stegged_packet)
+
+
+def handle_bpcs_decoding_request(client: ClientInfo, request_packet: PacketInfo):
+    request_packet.verify_code("150")
+    token = request_packet.body
+
+    stegged_packet = recv_packet(client.socket)
+    stegged_packet.verify_code("000")
+    steged_bytes = stegged_packet.body
+
+    send_packet(client.socket, build_packet("200"))
+
+    client_update_logger = logging.getLogger(str(threading.get_ident()))
+    client_update_logger.setLevel(logging.INFO)
+    client_update_logger.addFilter(client.update_status)
+
+    decoded_data = decode(steged_bytes, token)
+
+    products_packet = build_packet("203", body=decoded_data)
+
+    send_packet(client.socket, products_packet)
 
 
 class Server:
@@ -120,6 +153,9 @@ class Server:
         except PacketStructureError as e:
             self.logger.warning(f"A Packet structure error occurred: {e}")
             client.disconnect(build_packet("502"))
+        except PacketContentsError as e:
+            self.logger.warning(f"A Packet contents error occurred: {e}")
+            client.disconnect(build_packet("503", {"description": e.__str__()}))
         else:
             self.logger.info(f"Communication completed successfully with client {client.name}, "
                              f"closing the connection, and terminating client handler thread")

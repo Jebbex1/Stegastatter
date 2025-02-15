@@ -13,29 +13,29 @@ END = b"\x04"  # end of packet marker
 """
 CODES: dict[str, tuple[str, list[str]]] = {
     # 0xx: Informational, file uploads
-    "000": ("Vessel upload",
+    "000": ("File upload",
             []),
 
 
     # 1xx: Client requests and related (only client sends)
-    "100": ("BPCS steganography encoding request",  # message in body, followed by vessel upload
+    "100": ("BPCS steganography encoding request",  # message in body, followed by vessel image upload
             [
                 "encryption-key",
                 "ecc-block-size",
                 "ecc-symbol-num",
                 "alpha",
             ]),
-    "150": ("BPCS steganography decoding request",  # token in body, followed by vessel upload
+    "150": ("BPCS steganography decoding request",  # token in body, followed by vessel image upload
             []),
 
     # 2xx: Server replies, updates and related (only server sends)
-    "200": ("Got request",
+    "200": ("Accepted request",
             []),
     "201": ("Status update",
             [
                 "status"
             ]),
-    "202": ("Encoding products",  # token in body, followed by image upload
+    "202": ("Encoding products",  # token in body, followed by stegged image upload
             []),
     "203": ("Decoding products",  # data in body
             []),
@@ -67,6 +67,8 @@ CODES: dict[str, tuple[str, list[str]]] = {
             []),
     "502": ("Packet structure error",
             []),
-    "503": ("",
-            []),
+    "503": ("Packet contents error",
+            [
+                "description",
+            ]),
 }

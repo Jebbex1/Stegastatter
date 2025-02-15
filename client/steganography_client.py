@@ -44,15 +44,27 @@ class Client:
             message = b"helooooo"
 
             request = build_packet("100", headers=params_dict, body=message)
-            vessel = build_packet("000", body=(open("assets/message.txt", "rb").read()))
+            vessel = build_packet("000", body=(open("assets/ves2.png", "rb").read()))
 
             send_packet(self.skt, request)
             send_packet(self.skt, vessel)
 
-            token = recv_packet(self.skt).body
-            stegged = recv_packet(self.skt).body
+            token = b""
 
-            open("assets/out1.png", "wb").write(stegged)
+            while True:
+                packet = recv_packet(self.skt)
+                match packet.code.decode():
+                    case "201":
+                        print(packet.headers[b"status"].decode())
+                    case "202":
+                        print("Got token")
+                        token = packet.body
+                    case "000":
+                        print("Got image")
+                        open("assets/out1.png", "wb").write(packet.body)
+                    case "500":
+                        break
+
 
         except ConnectionError:
             # server disconnected
