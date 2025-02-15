@@ -36,35 +36,12 @@ class Client:
             self.skt = self.tls_context.wrap_socket(self.skt, server_hostname=server_ipv4)
             print("TLS handshake successful")
 
-            params_dict = {"encryption-key": "hello there",
-                           "ecc-block-size": "255",
-                           "ecc-symbol-num": "16",
-                           "alpha": "0.3", }
+            """self.initiate_bpcs_encodeing_request("test_assets/big2.png", "client/out1.png",
+                                                 open("test_assets/message.txt", "rb").read(), "client/token.bin",
+                                                 "KEYYY", 255, 16, 0.2)
 
-            message = b"helooooo"
-
-            request = build_packet("100", headers=params_dict, body=message)
-            vessel = build_packet("000", body=(open("assets/ves2.png", "rb").read()))
-
-            send_packet(self.skt, request)
-            send_packet(self.skt, vessel)
-
-            token = b""
-
-            while True:
-                packet = recv_packet(self.skt)
-                match packet.code.decode():
-                    case "201":
-                        print(packet.headers[b"status"].decode())
-                    case "202":
-                        print("Got token")
-                        token = packet.body
-                    case "000":
-                        print("Got image")
-                        open("assets/out1.png", "wb").write(packet.body)
-                    case "500":
-                        break
-
+            data = self.initiate_bpcs_decodeing_request("client/out1.png", "client/token.bin")
+            open("client/data.txt", "wb").write(data)"""
 
         except ConnectionError:
             # server disconnected
@@ -72,6 +49,69 @@ class Client:
             self.disconnect()
         except ssl.SSLError as e:
             print(f"There was en error regarding the TLS connection {e}")
+
+    def initiate_bpcs_encodeing_request(self, vessel_image_path: str, image_output_path: str, message_bytes: bytes,
+                                        token_output_path: str, encryption_key: str, ecc_block_size: int,
+                                        ecc_symbol_size: int, alpha: float) -> None:
+        params_dict = {
+                       "encryption-key": encryption_key,
+                       "ecc-block-size": str(ecc_block_size),
+                       "ecc-symbol-num": str(ecc_symbol_size),
+                       "alpha": str(alpha),
+                       }
+
+        vessel_image_bytes = open(vessel_image_path, "rb").read()
+
+        request_packet = build_packet("100", headers=params_dict, body=message_bytes)
+        vessel_upload_packet = build_packet("000", body=vessel_image_bytes)
+
+        send_packet(self.skt, request_packet)
+        send_packet(self.skt, vessel_upload_packet)
+
+        while True:
+            packet = recv_packet(self.skt)
+
+            match packet.code.decode():
+                case "201":
+                    print(packet.headers[b"status"].decode())
+                case "202":
+                    print("Recived BPCS token from server!")
+                    open(token_output_path, "wb").write(packet.body)
+                case "000":
+                    print("Received BPCS encoded image from server!")
+                    open(image_output_path, "wb").write(packet.body)
+                case "500":
+                    break
+                case _:
+                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
+                        print(f"An error occurred: {packet.desc.decode()}")
+
+    def initiate_bpcs_decodeing_request(self, stegged_image_path: str, token_path: str) -> bytes:
+        stegged_image_bytes = open(stegged_image_path, "rb").read()
+        token_bytes = open(token_path, "rb").read()
+
+        request_packet = build_packet("150", body=token_bytes)
+        stegged_upload_packet = build_packet("000", body=stegged_image_bytes)
+
+        send_packet(self.skt, request_packet)
+        send_packet(self.skt, stegged_upload_packet)
+
+        data = b""
+
+        while True:
+            packet = recv_packet(self.skt)
+            match packet.code.decode():
+                case "201":
+                    print(packet.headers[b"status"].decode())
+                case "203":
+                    print("Recived decoded data from server!")
+                    data = packet.body
+                case "500":
+                    break
+                case _:
+                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
+                        print(f"An error occurred: {packet.desc.decode()}")
+        return data
 
     def disconnect(self) -> None:
         """

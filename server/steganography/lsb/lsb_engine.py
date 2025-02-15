@@ -109,7 +109,7 @@ class LSB:
 
 
 if __name__ == '__main__':
-    lsb = LSB(Image.open('../../../assets/test.png'), 8)
+    lsb = LSB(Image.open('../../../test_assets/test.png'), 8)
 
     # lsb.encode_binary(b"hello there")
     # lsb.image.save("output1.png")

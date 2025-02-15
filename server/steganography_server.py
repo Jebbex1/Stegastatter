@@ -130,6 +130,8 @@ class Server:
             match steg_request.code:
                 case b"100":
                     handle_bpcs_encoding_request(client, steg_request)
+                case b"150":
+                    handle_bpcs_decoding_request(client, steg_request)
                 case _:
                     pass
 
