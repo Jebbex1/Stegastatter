@@ -1,3 +1,4 @@
+import os
 import socket
 import ssl
 import time
@@ -36,11 +37,9 @@ class Client:
             self.skt = self.tls_context.wrap_socket(self.skt, server_hostname=server_ipv4)
             print("TLS handshake successful")
 
-            """self.initiate_bpcs_encodeing_request("test_assets/big2.png", "client/out1.png",
-                                                 open("test_assets/message.txt", "rb").read(), "client/token.bin",
-                                                 "KEYYY", 255, 16, 0.2)
+            self.initiate_bitplane_slicing_request("client/data.txt", "client/slices")
 
-            data = self.initiate_bpcs_decodeing_request("client/out1.png", "client/token.bin")
+            """data = self.initiate_bpcs_decodeing_request("client/out1.png", "client/token.bin")
             open("client/data.txt", "wb").write(data)"""
 
         except ConnectionError:
@@ -54,53 +53,59 @@ class Client:
                                         token_output_path: str, encryption_key: str, ecc_block_size: int,
                                         ecc_symbol_size: int, alpha: float) -> None:
         params_dict = {
-                       "encryption-key": encryption_key,
-                       "ecc-block-size": str(ecc_block_size),
-                       "ecc-symbol-num": str(ecc_symbol_size),
-                       "alpha": str(alpha),
-                       }
+            "encryption-key": encryption_key,
+            "ecc-block-size": str(ecc_block_size),
+            "ecc-symbol-num": str(ecc_symbol_size),
+            "alpha": str(alpha),
+        }
 
         vessel_image_bytes = open(vessel_image_path, "rb").read()
 
-        request_packet = build_packet("100", headers=params_dict, body=message_bytes)
-        vessel_upload_packet = build_packet("000", body=vessel_image_bytes)
+        request_packet = build_packet("100", headers=params_dict, body=vessel_image_bytes)
+        message_packet = build_packet("000", body=message_bytes)
 
         send_packet(self.skt, request_packet)
-        send_packet(self.skt, vessel_upload_packet)
+        send_packet(self.skt, message_packet)
 
         while True:
             packet = recv_packet(self.skt)
 
             match packet.code.decode():
+                case "000":
+                    print("Received BPCS token image from server!")
+                    open(token_output_path, "wb").write(packet.body)
+                case "200":
+                    print("Server accepted BPCS encoding request!")
                 case "201":
                     print(packet.headers[b"status"].decode())
                 case "202":
-                    print("Recived BPCS token from server!")
-                    open(token_output_path, "wb").write(packet.body)
-                case "000":
-                    print("Received BPCS encoded image from server!")
+                    print("Recived BPCS encoded from server!")
                     open(image_output_path, "wb").write(packet.body)
                 case "500":
                     break
                 case _:
                     if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
                         print(f"An error occurred: {packet.desc.decode()}")
+                        self.disconnect()
+                        break
 
     def initiate_bpcs_decodeing_request(self, stegged_image_path: str, token_path: str) -> bytes:
         stegged_image_bytes = open(stegged_image_path, "rb").read()
         token_bytes = open(token_path, "rb").read()
 
-        request_packet = build_packet("150", body=token_bytes)
-        stegged_upload_packet = build_packet("000", body=stegged_image_bytes)
+        request_packet = build_packet("120", body=stegged_image_bytes)
+        token_packet = build_packet("000", body=token_bytes)
 
         send_packet(self.skt, request_packet)
-        send_packet(self.skt, stegged_upload_packet)
+        send_packet(self.skt, token_packet)
 
         data = b""
 
         while True:
             packet = recv_packet(self.skt)
             match packet.code.decode():
+                case "200":
+                    print("Server accepted BPCS decoding request!")
                 case "201":
                     print(packet.headers[b"status"].decode())
                 case "203":
@@ -111,7 +116,69 @@ class Client:
                 case _:
                     if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
                         print(f"An error occurred: {packet.desc.decode()}")
+                        self.disconnect()
+                        break
         return data
+
+    def initiate_bpcs_capacity_check_request(self, image_path: str, message_length: int, ecc_block_size: int,
+                                             ecc_symbol_size: int, alpha: float) -> bool:
+        image_bytes = open(image_path, "rb").read()
+
+        headers = {
+            "ecc-block-size": str(ecc_block_size),
+            "ecc-symbol-num": str(ecc_symbol_size),
+            "alpha": str(alpha),
+            "message-length": str(message_length),
+        }
+        request_packet = build_packet("140", headers=headers, body=image_bytes)
+
+        send_packet(self.skt, request_packet)
+
+        can_fit = None
+
+        while True:
+            packet = recv_packet(self.skt)
+            match packet.code.decode():
+                case "200":
+                    print("Server accepted BPCS capacity check request!")
+                case "201":
+                    print(packet.headers[b"status"].decode())
+                case "204":
+                    can_fit = bool(packet.headers[b"can-fit"].decode())
+                case "500":
+                    break
+                case _:
+                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
+                        print(f"An error occurred: {packet.desc.decode()}")
+                        self.disconnect()
+                        break
+
+        return can_fit
+
+    def initiate_bitplane_slicing_request(self, image_path: str, output_directory_path: str):
+        os.makedirs(output_directory_path, exist_ok=True)
+        image_bytes = open(image_path, "rb").read()
+
+        request_packet = build_packet("160", body=image_bytes)
+        send_packet(self.skt, request_packet)
+
+        while True:
+            packet = recv_packet(self.skt)
+            match packet.code.decode():
+                case "200":
+                    print("Server accepted BPCS capacity check request!")
+                case "201":
+                    print(packet.headers[b"status"].decode())
+                case "260":
+                    bitplane_slice = open(f"{output_directory_path}/{packet.headers[b"image-name"].decode()}", "wb")
+                    bitplane_slice.write(packet.body)
+                case "500":
+                    break
+                case _:
+                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
+                        print(f"An error occurred: {packet.desc.decode()}")
+                        self.disconnect()
+                        break
 
     def disconnect(self) -> None:
         """

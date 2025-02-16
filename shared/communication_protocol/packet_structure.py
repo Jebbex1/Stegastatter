@@ -15,33 +15,26 @@ CODES: dict[str, tuple[str, list[str]]] = {
     # 0xx: Informational, file uploads
     "000": ("File upload",
             []),
-    "001": ("Start of file upload sequence",
-            []),
-    "002": ("File upload in sequence",
-            [
-                "file-name"
-            ]),
-    "003": ("End of file upload sequence",
-            []),
 
     # 1xx: Client requests and related (only client sends)
-    "100": ("BPCS steganography encoding request",  # message in body, followed by vessel image upload
+    "100": ("BPCS steganography encoding request",  # vessel image in body, followed by message upload
             [
                 "encryption-key",
                 "ecc-block-size",
                 "ecc-symbol-num",
                 "alpha",
             ]),
-    "150": ("BPCS steganography decoding request",  # token in body, followed by vessel image upload
+    "120": ("BPCS steganography decoding request",  # vessel image in body, followed by token upload
             []),
-    "170": ("BPCS capacity check request",
+    "140": ("BPCS capacity check request",  # image in body
             [
-                "encryption-key",
                 "ecc-block-size",
                 "ecc-symbol-num",
                 "alpha",
                 "message-length",
             ]),
+    "160": ("Bitplane slicing request",  # image in body
+            []),
 
     # 2xx: Server replies, updates and related (only server sends)
     "200": ("Accepted request",
@@ -50,11 +43,18 @@ CODES: dict[str, tuple[str, list[str]]] = {
             [
                 "status"
             ]),
-    "202": ("Encoding products",  # token in body, followed by stegged image upload
+    "202": ("Encoding products",  # stegged in body, followed by token upload
             []),
     "203": ("Decoding products",  # data in body
             []),
-
+    "204": ("Capacity check products",
+            [
+                "can-fit",
+            ]),
+    "260": ("Bitplane slicing image sequence",  # image in body
+            [
+                "image-name",
+            ]),
     # 3xx: Client-specific connection termination messages (client sends to server)
 
     # 4xx: Server-specific connection termination messages (server sends to client)

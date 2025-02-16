@@ -14,17 +14,18 @@ from shared.utils import sock_name
 from shared.communication_protocol.communication_errors import TransmissionProtocolError, PacketStructureError, \
     PacketContentsError
 from server.client_info import ClientInfo
-from server.steganography.bpcs.engine import encode, decode
+from server.steganography.bpcs.engine import encode, decode, check_if_fits_from_arbitrary
+from server.steganography.steganalysis.bit_plane_slicing import slice_rgb_bit_planes
 
 
 def handle_bpcs_encoding_request(client: ClientInfo, request_packet: PacketInfo):
     request_packet.verify_code("100")
-    message = request_packet.body
+    vessel_bytes = request_packet.body
     params_dict = request_packet.headers
 
     vessel_packet = recv_packet(client.socket)
     vessel_packet.verify_code("000")
-    vessel_bytes = vessel_packet.body
+    message = vessel_packet.body
 
     try:
         key = params_dict[b"encryption-key"]
@@ -43,20 +44,20 @@ def handle_bpcs_encoding_request(client: ClientInfo, request_packet: PacketInfo)
     stegged_bytes, token = encode(vessel_bytes, message, key, ecc_block_size=ecc_block_size,
                                   ecc_symbol_num=ecc_symbol_num, alpha=alpha)
 
-    token_packet = build_packet("202", body=token)
-    stegged_packet = build_packet("000", body=stegged_bytes)
+    encoding_product_packet = build_packet("202", body=stegged_bytes)
+    token_packet = build_packet("000", body=token)
 
+    send_packet(client.socket, encoding_product_packet)
     send_packet(client.socket, token_packet)
-    send_packet(client.socket, stegged_packet)
 
 
 def handle_bpcs_decoding_request(client: ClientInfo, request_packet: PacketInfo):
-    request_packet.verify_code("150")
-    token = request_packet.body
+    request_packet.verify_code("120")
+    steged_bytes = request_packet.body
 
     stegged_packet = recv_packet(client.socket)
     stegged_packet.verify_code("000")
-    steged_bytes = stegged_packet.body
+    token = stegged_packet.body
 
     send_packet(client.socket, build_packet("200"))
 
@@ -69,6 +70,49 @@ def handle_bpcs_decoding_request(client: ClientInfo, request_packet: PacketInfo)
     products_packet = build_packet("203", body=decoded_data)
 
     send_packet(client.socket, products_packet)
+
+
+def handle_bpcs_capacity_request(client: ClientInfo, request_packet: PacketInfo):
+    request_packet.verify_code("140")
+    params_dict = request_packet.headers
+    vessel_bytes = request_packet.body
+
+    try:
+        ecc_block_size = int(params_dict[b"ecc-block-size"])
+        ecc_symbol_num = int(params_dict[b"ecc-symbol-num"])
+        alpha = float(params_dict[b"alpha"])
+        message_length = int(params_dict[b"message-length"])
+    except ValueError as e:
+        raise PacketContentsError(f"Packet header types are invalid: {e}")
+
+    send_packet(client.socket, build_packet("200"))
+
+    client_update_logger = logging.getLogger(str(threading.get_ident()))
+    client_update_logger.setLevel(logging.INFO)
+    client_update_logger.addFilter(client.update_status)
+
+    can_fit = check_if_fits_from_arbitrary(vessel_bytes, message_length, ecc_block_size, ecc_symbol_num, alpha)
+
+    products_packet = build_packet("204", headers={"can-fit": str(can_fit)})
+
+    send_packet(client.socket, products_packet)
+
+
+def handle_bitplane_slicing_request(client: ClientInfo, request_packet: PacketInfo):
+    request_packet.verify_code("160")
+    image_bytes = request_packet.body
+
+    send_packet(client.socket, build_packet("200"))
+
+    client_update_logger = logging.getLogger(str(threading.get_ident()))
+    client_update_logger.setLevel(logging.INFO)
+    client_update_logger.addFilter(client.update_status)
+
+    slices = slice_rgb_bit_planes(image_bytes)
+
+    for name, slice_bytes in slices:
+        slice_packet = build_packet("260", headers={"image-name": name}, body=slice_bytes)
+        send_packet(client.socket, slice_packet)
 
 
 class Server:
@@ -127,12 +171,16 @@ class Server:
             cipher, tls_version, secret_bit_num = client.socket.cipher()
             self.logger.info(f"Completed TLS handshake with client {client.name}; using {tls_version}, "
                              f"with cipher {cipher}")
-            steg_request = recv_packet(client.socket)
-            match steg_request.code:
+            request_packet = recv_packet(client.socket)
+            match request_packet.code:
                 case b"100":
-                    handle_bpcs_encoding_request(client, steg_request)
-                case b"150":
-                    handle_bpcs_decoding_request(client, steg_request)
+                    handle_bpcs_encoding_request(client, request_packet)
+                case b"120":
+                    handle_bpcs_decoding_request(client, request_packet)
+                case b"140":
+                    handle_bpcs_capacity_request(client, request_packet)
+                case b"160":
+                    handle_bitplane_slicing_request(client, request_packet)
                 case _:
                     pass
 
@@ -161,7 +209,7 @@ class Server:
             client.disconnect(build_packet("502"))
         except PacketContentsError as e:
             self.logger.warning(f"A Packet contents error occurred: {e}")
-            client.disconnect(build_packet("503", {"description": e.__str__()}))
+            client.disconnect(build_packet("503", {"description": str(e)}))
         else:
             self.logger.info(f"Communication completed successfully with client {client.name}, "
                              f"closing the connection, and terminating client handler thread")
