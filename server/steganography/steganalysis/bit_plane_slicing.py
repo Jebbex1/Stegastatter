@@ -1,11 +1,9 @@
 import io
 import logging
 import threading
-import PIL
 import numpy as np
 from PIL import Image
 
-from shared.communication_protocol.communication_errors import PacketContentsError
 from server.steganography.image_utils import open_image_from_bytes
 
 
@@ -14,6 +12,7 @@ def slice_rgb_bit_planes(image_bytes: bytes):
 
     image = open_image_from_bytes(image_bytes)
 
+    update_logger.info("Slicing image into separate bitplanes...")
     for channel in image.getbands():
         c_image = np.array(image.getchannel(channel))
         update_logger.info(f"Channel: {channel}")

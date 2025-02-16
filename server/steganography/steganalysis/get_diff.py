@@ -21,6 +21,8 @@ def show_diff(img1_bytes: bytes, img2_bytes: bytes, exact_diff: bool) -> tuple[t
 
     diff_image = Image.new("RGB", img1.size)
 
+    update_logger.info("Calculating diffrences between the images...")
+
     r_diff, g_diff, b_diff = 0, 0, 0
     diff_pixels_num = 0
     for w in range(img1.size[0]):
