@@ -15,7 +15,14 @@ CODES: dict[str, tuple[str, list[str]]] = {
     # 0xx: Informational, file uploads
     "000": ("File upload",
             []),
-
+    "001": ("Start of file upload sequence",
+            []),
+    "002": ("File upload in sequence",
+            [
+                "file-name"
+            ]),
+    "003": ("End of file upload sequence",
+            []),
 
     # 1xx: Client requests and related (only client sends)
     "100": ("BPCS steganography encoding request",  # message in body, followed by vessel image upload
@@ -27,6 +34,14 @@ CODES: dict[str, tuple[str, list[str]]] = {
             ]),
     "150": ("BPCS steganography decoding request",  # token in body, followed by vessel image upload
             []),
+    "170": ("BPCS capacity check request",
+            [
+                "encryption-key",
+                "ecc-block-size",
+                "ecc-symbol-num",
+                "alpha",
+                "message-length",
+            ]),
 
     # 2xx: Server replies, updates and related (only server sends)
     "200": ("Accepted request",
@@ -42,7 +57,6 @@ CODES: dict[str, tuple[str, list[str]]] = {
 
     # 3xx: Client-specific connection termination messages (client sends to server)
 
-
     # 4xx: Server-specific connection termination messages (server sends to client)
     "400": ("Internal server error",
             []),
@@ -56,7 +70,6 @@ CODES: dict[str, tuple[str, list[str]]] = {
             ]),
     "403": ("There is an existing client from this address and port",
             []),
-
 
     # 5xx: Protocol and non-side specific errors (allways followed by disconnecting)
     "500": ("Normal disconnect",
