@@ -75,22 +75,22 @@ class Client:
         while True:
             packet = recv_packet(self.skt)
 
-            match packet.code.decode():
+            match packet.code:
                 case "000":
                     print("Received BPCS token image from server!")
                     open(token_output_path, "wb").write(packet.body)
                 case "200":
                     print("Server accepted BPCS encoding request!")
                 case "201":
-                    print(packet.headers[b"status"].decode())
+                    print(packet.headers["status"])
                 case "202":
                     print("Recived BPCS encoded from server!")
                     open(image_output_path, "wb").write(packet.body)
                 case "500":
                     break
                 case _:
-                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
-                        print(f"An error occurred: {packet.desc.decode()}")
+                    if packet.code[0] == "4" or packet.code[0] == "5":
+                        print(f"An error occurred: {packet.desc}")
                         self.disconnect()
                         break
 
@@ -108,19 +108,19 @@ class Client:
 
         while True:
             packet = recv_packet(self.skt)
-            match packet.code.decode():
+            match packet.code:
                 case "200":
                     print("Server accepted BPCS decoding request!")
                 case "201":
-                    print(packet.headers[b"status"].decode())
+                    print(packet.headers["status"])
                 case "203":
                     print("Recived decoded data from server!")
                     data = packet.body
                 case "500":
                     break
                 case _:
-                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
-                        print(f"An error occurred: {packet.desc.decode()}")
+                    if packet.code[0] == "4" or packet.code[0] == "5":
+                        print(f"An error occurred: {packet.desc}")
                         self.disconnect()
                         break
         return data
@@ -143,18 +143,18 @@ class Client:
 
         while True:
             packet = recv_packet(self.skt)
-            match packet.code.decode():
+            match packet.code:
                 case "200":
                     print("Server accepted BPCS capacity check request!")
                 case "201":
-                    print(packet.headers[b"status"].decode())
+                    print(packet.headers["status"])
                 case "204":
-                    can_fit = bool(packet.headers[b"can-fit"].decode())
+                    can_fit = bool(packet.headers["can-fit"])
                 case "500":
                     break
                 case _:
-                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
-                        print(f"An error occurred: {packet.desc.decode()}")
+                    if packet.code[0] == "4" or packet.code[0] == "5":
+                        print(f"An error occurred: {packet.desc}")
                         self.disconnect()
                         break
 
@@ -169,19 +169,19 @@ class Client:
 
         while True:
             packet = recv_packet(self.skt)
-            match packet.code.decode():
+            match packet.code:
                 case "200":
                     print("Server accepted BPCS capacity check request!")
                 case "201":
-                    print(packet.headers[b"status"].decode())
+                    print(packet.headers[b"status"])
                 case "260":
-                    bitplane_slice = open(f"{output_directory_path}/{packet.headers[b"image-name"].decode()}", "wb")
+                    bitplane_slice = open(f"{output_directory_path}/{packet.headers["image-name"]}", "wb")
                     bitplane_slice.write(packet.body)
                 case "500":
                     break
                 case _:
-                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
-                        print(f"An error occurred: {packet.desc.decode()}")
+                    if packet.code[0] == "4" or packet.code[0] == "5":
+                        print(f"An error occurred: {packet.desc}")
                         self.disconnect()
                         break
 
@@ -198,22 +198,22 @@ class Client:
 
         while True:
             packet = recv_packet(self.skt)
-            match packet.code.decode():
+            match packet.code:
                 case "200":
                     print("Server accepted image difference calculation request!")
                 case "201":
-                    print(packet.headers[b"status"].decode())
+                    print(packet.headers["status"])
                 case "261":
                     print("Recived difference image from server!")
-                    print(f"Red channel max difference: {packet.headers[b"red-diff"]}")
-                    print(f"Green channel max difference: {packet.headers[b"green-diff"]}")
-                    print(f"Blue channel max difference: {packet.headers[b"blue-diff"]}")
+                    print(f"Red channel max difference: {packet.headers["red-diff"]}")
+                    print(f"Green channel max difference: {packet.headers["green-diff"]}")
+                    print(f"Blue channel max difference: {packet.headers["blue-diff"]}")
                     open(diff_image_path, "wb").write(packet.body)
                 case "500":
                     break
                 case _:
-                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
-                        print(f"An error occurred: {packet.desc.decode()}")
+                    if packet.code[0] == "4" or packet.code[0] == "5":
+                        print(f"An error occurred: {packet.desc}")
                         self.disconnect()
                         break
 

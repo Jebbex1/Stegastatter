@@ -29,10 +29,10 @@ def handle_bpcs_encoding_request(client: ClientInfo, request_packet: PacketInfo)
     message = vessel_packet.body
 
     try:
-        key = params_dict[b"encryption-key"]
-        ecc_block_size = int(params_dict[b"ecc-block-size"])
-        ecc_symbol_num = int(params_dict[b"ecc-symbol-num"])
-        alpha = float(params_dict[b"alpha"])
+        key = params_dict["encryption-key"]
+        ecc_block_size = int(params_dict["ecc-block-size"])
+        ecc_symbol_num = int(params_dict["ecc-symbol-num"])
+        alpha = float(params_dict["alpha"])
     except ValueError as e:
         raise PacketContentsError(f"Packet header types are invalid: {e}")
 
@@ -71,10 +71,10 @@ def handle_bpcs_capacity_request(client: ClientInfo, request_packet: PacketInfo)
     vessel_bytes = request_packet.body
 
     try:
-        ecc_block_size = int(params_dict[b"ecc-block-size"])
-        ecc_symbol_num = int(params_dict[b"ecc-symbol-num"])
-        alpha = float(params_dict[b"alpha"])
-        message_length = int(params_dict[b"message-length"])
+        ecc_block_size = int(params_dict["ecc-block-size"])
+        ecc_symbol_num = int(params_dict["ecc-symbol-num"])
+        alpha = float(params_dict["alpha"])
+        message_length = int(params_dict["message-length"])
     except ValueError as e:
         raise PacketContentsError(f"Packet header types are invalid: {e}")
 
@@ -110,7 +110,7 @@ def handle_image_diff_request(client: ClientInfo, request_packet: PacketInfo):
     image1_bytes = request_packet.body
 
     try:
-        exact_diff = bool(int(params_dict[b"show-exact-diff"].decode()))
+        exact_diff = bool(int(params_dict["show-exact-diff"]))
     except ValueError as e:
         raise PacketContentsError(f"Packet header types are invalid: {e}")
 
@@ -190,15 +190,15 @@ class Server:
                              f"with cipher {cipher}")
             request_packet = recv_packet(client.socket)
             match request_packet.code:
-                case b"100":
+                case "100":
                     handle_bpcs_encoding_request(client, request_packet)
-                case b"120":
+                case "120":
                     handle_bpcs_decoding_request(client, request_packet)
-                case b"140":
+                case "140":
                     handle_bpcs_capacity_request(client, request_packet)
-                case b"160":
+                case "160":
                     handle_bitplane_slicing_request(client, request_packet)
-                case b"161":
+                case "161":
                     handle_image_diff_request(client, request_packet)
                 case _:
                     pass
