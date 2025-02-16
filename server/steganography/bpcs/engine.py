@@ -6,13 +6,13 @@ from server.steganography.bpcs.capacity import calculate_if_fits
 from server.steganography.content_wrapper.wrapper import wrap_bpcs, get_bpcs_token_info, unwrap
 
 
-def encode(source_image_bytes: bytes, message: bytes, key: bytes, ecc_block_size: int = 255,
+def encode(source_image_bytes: bytes, message: bytes, key: str, ecc_block_size: int = 255,
            ecc_symbol_num: int = 16, alpha: float = 0.3, check_capacity=True) -> tuple[bytes, bytes]:
     """
     Encodes message into the image at source_image_path, affecting blocks that have a
     complexity coefficient of alpha or greater, then saves the resulting image to output_file_path.
     """
-    message, token = wrap_bpcs(message, key, ecc_block_size, ecc_symbol_num, alpha)
+    message, token = wrap_bpcs(message, key.encode(), ecc_block_size, ecc_symbol_num, alpha)
     img = BPCSImage(source_image_bytes, as_cgc=True)
     message_blocks, message_bit_length = get_message_blocks_from_bytes(message)
     arr = img.encode(message_blocks, message_bit_length, alpha, check_capacity)
