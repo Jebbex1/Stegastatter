@@ -1,11 +1,5 @@
 .idea/
-main.py
-steganalysis/
 test.py
-*.png
-*.txt
-test_assests/
-token.bin
 
 
 # Byte-compiled / optimized / DLL files
