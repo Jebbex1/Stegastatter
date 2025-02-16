@@ -1,6 +1,7 @@
 import logging
 import socket
 import ssl
+import threading
 
 from shared.utils import sock_name
 from shared.communication_protocol.transmission import send_packet
@@ -11,6 +12,9 @@ class ClientInfo:
     def __init__(self, client_skt: socket.socket):
         self.socket: socket.socket | ssl.SSLSocket = client_skt
         self.name = sock_name(self.socket)
+        client_update_logger = logging.getLogger(str(threading.get_ident()))
+        client_update_logger.setLevel(logging.INFO)
+        client_update_logger.addFilter(self.update_status)
 
     def update_status(self, record: logging.LogRecord):
         send_packet(self.socket, build_packet("201", {"status": record.getMessage()}))

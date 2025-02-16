@@ -16,6 +16,7 @@ from shared.communication_protocol.communication_errors import TransmissionProto
 from server.client_info import ClientInfo
 from server.steganography.bpcs.engine import encode, decode, check_if_fits_from_arbitrary
 from server.steganography.steganalysis.bit_plane_slicing import slice_rgb_bit_planes
+from server.steganography.steganalysis.get_diff import show_diff
 
 
 def handle_bpcs_encoding_request(client: ClientInfo, request_packet: PacketInfo):
@@ -37,10 +38,6 @@ def handle_bpcs_encoding_request(client: ClientInfo, request_packet: PacketInfo)
 
     send_packet(client.socket, build_packet("200"))
 
-    client_update_logger = logging.getLogger(str(threading.get_ident()))
-    client_update_logger.setLevel(logging.INFO)
-    client_update_logger.addFilter(client.update_status)
-
     stegged_bytes, token = encode(vessel_bytes, message, key, ecc_block_size=ecc_block_size,
                                   ecc_symbol_num=ecc_symbol_num, alpha=alpha)
 
@@ -60,10 +57,6 @@ def handle_bpcs_decoding_request(client: ClientInfo, request_packet: PacketInfo)
     token = stegged_packet.body
 
     send_packet(client.socket, build_packet("200"))
-
-    client_update_logger = logging.getLogger(str(threading.get_ident()))
-    client_update_logger.setLevel(logging.INFO)
-    client_update_logger.addFilter(client.update_status)
 
     decoded_data = decode(steged_bytes, token)
 
@@ -87,10 +80,6 @@ def handle_bpcs_capacity_request(client: ClientInfo, request_packet: PacketInfo)
 
     send_packet(client.socket, build_packet("200"))
 
-    client_update_logger = logging.getLogger(str(threading.get_ident()))
-    client_update_logger.setLevel(logging.INFO)
-    client_update_logger.addFilter(client.update_status)
-
     can_fit = check_if_fits_from_arbitrary(vessel_bytes, message_length, ecc_block_size, ecc_symbol_num, alpha)
 
     products_packet = build_packet("204", headers={"can-fit": str(can_fit)})
@@ -113,6 +102,34 @@ def handle_bitplane_slicing_request(client: ClientInfo, request_packet: PacketIn
     for name, slice_bytes in slices:
         slice_packet = build_packet("260", headers={"image-name": name}, body=slice_bytes)
         send_packet(client.socket, slice_packet)
+
+
+def handle_image_diff_request(client: ClientInfo, request_packet: PacketInfo):
+    request_packet.verify_code("161")
+    params_dict = request_packet.headers
+    image1_bytes = request_packet.body
+
+    try:
+        exact_diff = bool(int(params_dict[b"show-exact-diff"].decode()))
+    except ValueError as e:
+        raise PacketContentsError(f"Packet header types are invalid: {e}")
+
+    image2_packet = recv_packet(client.socket)
+    image2_packet.verify_code("000")
+    image2_bytes = image2_packet.body
+
+    send_packet(client.socket, build_packet("200"))
+
+    (r_diff, g_diff, b_diff), diff_image_bytes = show_diff(image1_bytes, image2_bytes, exact_diff)
+
+    diff_headers = {
+        "red-diff": str(r_diff),
+        "green-diff": str(g_diff),
+        "blue-diff": str(b_diff),
+    }
+
+    products_packet = build_packet("261", headers=diff_headers, body=diff_image_bytes)
+    send_packet(client.socket, products_packet)
 
 
 class Server:
@@ -181,6 +198,8 @@ class Server:
                     handle_bpcs_capacity_request(client, request_packet)
                 case b"160":
                     handle_bitplane_slicing_request(client, request_packet)
+                case b"161":
+                    handle_image_diff_request(client, request_packet)
                 case _:
                     pass
 
@@ -209,7 +228,7 @@ class Server:
             client.disconnect(build_packet("502"))
         except PacketContentsError as e:
             self.logger.warning(f"A Packet contents error occurred: {e}")
-            client.disconnect(build_packet("503", {"description": str(e)}))
+            client.disconnect(build_packet("503", {"description": e.__str__()}))
         else:
             self.logger.info(f"Communication completed successfully with client {client.name}, "
                              f"closing the connection, and terminating client handler thread")

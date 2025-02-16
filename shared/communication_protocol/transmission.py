@@ -12,6 +12,7 @@ RECV_BUFFER_SIZE = 128000
 def recv_packet(skt: socket.socket) -> PacketInfo:
     """
     Receives a packet by the transmission protocol, and returns it as a string.
+    :rtype: object
     :param skt: the socket interface that we can use to communicate
     :return: the received packet
     """

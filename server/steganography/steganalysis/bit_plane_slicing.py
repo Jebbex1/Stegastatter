@@ -4,18 +4,15 @@ import threading
 import PIL
 import numpy as np
 from PIL import Image
-import os
 
 from shared.communication_protocol.communication_errors import PacketContentsError
+from server.steganography.image_utils import open_image_from_bytes
 
 
 def slice_rgb_bit_planes(image_bytes: bytes):
     update_logger = logging.getLogger(str(threading.get_ident()))
 
-    try:
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    except PIL.UnidentifiedImageError:
-        raise PacketContentsError("Expected image bytes, got otherwise")
+    image = open_image_from_bytes(image_bytes)
 
     for channel in image.getbands():
         c_image = np.array(image.getchannel(channel))

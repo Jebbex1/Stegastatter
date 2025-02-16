@@ -35,6 +35,10 @@ CODES: dict[str, tuple[str, list[str]]] = {
             ]),
     "160": ("Bitplane slicing request",  # image in body
             []),
+    "161": ("Image difference calculation request",
+            [
+                "show-exact-diff",
+            ]),
 
     # 2xx: Server replies, updates and related (only server sends)
     "200": ("Accepted request",
@@ -51,9 +55,15 @@ CODES: dict[str, tuple[str, list[str]]] = {
             [
                 "can-fit",
             ]),
-    "260": ("Bitplane slicing image sequence",  # image in body
+    "260": ("Bitplane slicing products image sequence",  # image in body
             [
                 "image-name",
+            ]),
+    "261": ("Image difference calculation products",   # diff image in body
+            [
+                "red-diff",
+                "green-diff",
+                "blue-diff",
             ]),
     # 3xx: Client-specific connection termination messages (client sends to server)
 

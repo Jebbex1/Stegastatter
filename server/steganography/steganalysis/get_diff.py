@@ -1,39 +1,50 @@
+import io
+import logging
+import threading
+
 from PIL import Image
 
+from shared.communication_protocol.communication_errors import PacketContentsError
+from server.steganography.image_utils import open_image_from_bytes
 
-def show_diff(image1_path: str, image2_path: str, image_mode, output_path: str, exact_diff: bool = True):
-    img1 = Image.open(image1_path)
-    img2 = Image.open(image2_path)
-    img1 = img1.convert(image_mode)
-    img2 = img2.convert(image_mode)
 
-    assert img1.size == img2.size
+def show_diff(img1_bytes: bytes, img2_bytes: bytes, exact_diff: bool) -> tuple[tuple[int, int, int], bytes]:
+    update_logger = logging.getLogger(str(threading.get_ident()))
 
-    diff = Image.new(image_mode, img1.size)
+    update_logger.info("Loading images...")
 
-    r_m, g_m, b_m = 0, 0, 0
+    img1 = open_image_from_bytes(img1_bytes)
+    img2 = open_image_from_bytes(img2_bytes)
+
+    if img1.size != img2.size:
+        raise PacketContentsError("Sent images must have same size")
+
+    diff_image = Image.new("RGB", img1.size)
+
+    r_diff, g_diff, b_diff = 0, 0, 0
+    diff_pixels_num = 0
     for w in range(img1.size[0]):
         for h in range(img1.size[1]):
             p1 = img1.getpixel((w, h))
             p2 = img2.getpixel((w, h))
+
             if p1 != p2:
-                # for calculating the exact diff: abs(img1.getpixel((w, h)) - img2.getpixel((w, h)))
+                diff_pixels_num += 1
+
                 r = abs(p1[0] - p2[0])
-                r_m = max(r, r_m)
                 g = abs(p1[1] - p2[1])
-                g_m = max(g, g_m)
                 b = abs(p1[2] - p2[2])
-                b_m = max(b, b_m)
+
+                r_diff = max(r, r_diff)
+                g_diff = max(g, g_diff)
+                b_diff = max(b, b_diff)
                 if exact_diff:
-                    diff.putpixel((w, h), (r, g, b))
+                    diff_image.putpixel((w, h), (r, g, b))
                 else:
-                    diff.putpixel((w, h), (255, 255, 255))
+                    diff_image.putpixel((w, h),
+                                        tuple(255 if d != 0 else 0 for d in (r, g, b)))
+    update_logger.info(f"Found {diff_pixels_num} different pixels")
 
-    diff.save(output_path)
-    print("The images differ with the maximum difference in each pixel RGB channel as:")
-    print(f"R: {r_m} \nG: {g_m} \nB: {b_m}")
-
-
-if __name__ == '__main__':
-    show_diff("ves1.png", "out1.png", "RGB",
-              "diff.png", True)
+    image_bytes = io.BytesIO()
+    diff_image.save(image_bytes, format="PNG")
+    return (r_diff, g_diff, b_diff), image_bytes.getvalue()

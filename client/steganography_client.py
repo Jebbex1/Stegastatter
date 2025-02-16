@@ -37,11 +37,16 @@ class Client:
             self.skt = self.tls_context.wrap_socket(self.skt, server_hostname=server_ipv4)
             print("TLS handshake successful")
 
-            self.initiate_bitplane_slicing_request("client/data.txt", "client/slices")
+            """self.initiate_bpcs_encodeing_request("client/test_assets/big2.png", "client/test_assets/out1.png",
+                                                 open("client/test_assets/big2small.png", "rb").read(),
+                                                 "client/token.bin", "Hello i am a keyyyyyyyyyyyyyyyyyyYYyyYYYYyyYYYYYY",
+                                                 255, 16, 0.3)
 
-            """data = self.initiate_bpcs_decodeing_request("client/out1.png", "client/token.bin")
-            open("client/data.txt", "wb").write(data)"""
+            decoded_data = self.initiate_bpcs_decodeing_request("client/test_assets/out1.png", "client/token.bin")
+            open("client/test_assets/message_out.png", "wb").write(decoded_data)"""
 
+            self.initiate_image_diff_calculation_request("client/test_assets/big2.png", "client/test_assets/out1.png",
+                                                         False, "client/test_assets/loose_diff.png")
         except ConnectionError:
             # server disconnected
             print("Server closed connection")
@@ -172,6 +177,38 @@ class Client:
                 case "260":
                     bitplane_slice = open(f"{output_directory_path}/{packet.headers[b"image-name"].decode()}", "wb")
                     bitplane_slice.write(packet.body)
+                case "500":
+                    break
+                case _:
+                    if packet.code.decode()[0] == "4" or packet.code.decode()[0] == "5":
+                        print(f"An error occurred: {packet.desc.decode()}")
+                        self.disconnect()
+                        break
+
+    def initiate_image_diff_calculation_request(self, image1_path: str, image2_path: str, exact_diff: bool,
+                                                diff_image_path: str):
+        image1_bytes = open(image1_path, "rb").read()
+        image2_bytes = open(image2_path, "rb").read()
+
+        request_packet = build_packet("161", headers={"show-exact-diff": str(int(exact_diff))}, body=image1_bytes)
+        second_image_packet = build_packet("000", body=image2_bytes)
+
+        send_packet(self.skt, request_packet)
+        send_packet(self.skt, second_image_packet)
+
+        while True:
+            packet = recv_packet(self.skt)
+            match packet.code.decode():
+                case "200":
+                    print("Server accepted image difference calculation request!")
+                case "201":
+                    print(packet.headers[b"status"].decode())
+                case "261":
+                    print("Recived difference image from server!")
+                    print(f"Red channel max difference: {packet.headers[b"red-diff"]}")
+                    print(f"Green channel max difference: {packet.headers[b"green-diff"]}")
+                    print(f"Blue channel max difference: {packet.headers[b"blue-diff"]}")
+                    open(diff_image_path, "wb").write(packet.body)
                 case "500":
                     break
                 case _:

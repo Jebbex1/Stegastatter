@@ -1,9 +1,7 @@
 import io
 import logging
 import threading
-from io import BytesIO
 
-import PIL
 import numpy as np
 from PIL import Image
 
@@ -12,17 +10,7 @@ from server.steganography.bpcs.decode import read_message_from_vessel
 from server.steganography.bpcs.encode import embed_message_in_vessel
 from server.steganography.steganography_errors import SteganographyError
 from shared.communication_protocol.communication_errors import PacketContentsError
-
-
-def load_image(image_bytes: bytes) -> Image.Image:
-    """
-    Loads an image, automatically converts it to RGB encoding.
-    :return: a PIL image object of the image
-    """
-    try:
-        return Image.open(BytesIO(image_bytes)).convert("RGB")
-    except PIL.UnidentifiedImageError:
-        raise PacketContentsError("Expected image bytes, got otherwise")
+from server.steganography.image_utils import open_image_from_bytes
 
 
 def write_image(out_path: str, image: Image.Image) -> None:
@@ -75,7 +63,7 @@ class BPCSImage:
         plane.
         :return: bit planes that describe the images pixels
         """
-        img = load_image(self.image_bytes)
+        img = open_image_from_bytes(self.image_bytes)
         pixels = image_to_array(img)
         pixels = BitPlane(pixels, self.as_gray).slice(self.num_of_bits_per_layer)
         return pixels
