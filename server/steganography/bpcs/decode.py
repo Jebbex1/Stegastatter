@@ -44,12 +44,19 @@ def decode_message_from_remaining_blocks(remaining_blocks: np.ndarray, message_b
     """
     block_area = block_shape[0] * block_shape[1]
     message_blocks = []
-    for i in range(message_block_length):
-        block = remaining_blocks[i]
-        if conjugation_map[i]:
-            message_blocks.append(conjugate(block))
-        else:
-            message_blocks.append(block)
+    try:
+        for i in range(message_block_length):
+            block = remaining_blocks[i]
+            if conjugation_map[i]:
+                message_blocks.append(conjugate(block))
+            else:
+                message_blocks.append(block)
+    except IndexError:
+        # this can only happen when the block length extracted from the image is incorrect, this must be caused by an
+        # incorrect minimum complexity coefficient. Which means that the client sent an image-token pair that didn't
+        # match
+        raise BPCSDecodeError("The supplied token and image dont match each other. This might happen when opening the "
+                              "token with a text editor.")
 
     message_bits = blocks_to_bits(np.array(message_blocks))
     message_bits = message_bits[:len(message_bits) - (block_area - message_remnant_bits_num)]

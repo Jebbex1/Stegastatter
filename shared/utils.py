@@ -3,6 +3,8 @@ from datetime import datetime
 from PIL import Image
 import io
 
+from shared.communication_protocol.packet_analyzer import PacketInfo
+
 
 def sock_name(skt: socket.socket) -> str:
     """
@@ -22,3 +24,18 @@ def get_image_bytes(image_path: str) -> bytes:
     image_bytes = io.BytesIO()
     image.save(image_bytes, format="PNG")
     return image_bytes.getvalue()
+
+
+def get_dissconnect_packet_line(packet: PacketInfo):
+    match packet.code:
+        case "401":
+            return f"{packet.desc}: {packet.headers["description"]}"
+        case "402":
+            return f"{packet.desc}: {packet.headers["description"]}"
+        case "500":
+            return f"{packet.desc}: {packet.headers["reason"]}"
+        case "503":
+            return f"{packet.desc}: {packet.headers["description"]}"
+        case _:
+            return packet.desc
+

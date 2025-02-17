@@ -6,7 +6,7 @@ import time
 from shared.communication_protocol.transmission import PORT, send_packet, recv_packet
 from shared.communication_protocol.packet_analyzer import PacketInfo
 from shared.communication_protocol.packet_builder import build_packet
-from shared.utils import get_image_bytes
+from shared.utils import get_image_bytes, get_dissconnect_packet_line
 
 
 class Client:
@@ -73,10 +73,11 @@ class Client:
 
         except ConnectionError:
             # server disconnected
-            print("Server closed connection")
-            self.disconnect()
+            print("Server closed connection unexpectedly.")
         except ssl.SSLError as e:
             print(f"There was en error regarding the TLS connection {e}")
+        finally:
+            self.disconnect()
 
     def initiate_bpcs_encodeing_request(self, vessel_image_path: str, image_output_path: str, message_bytes: bytes,
                                         token_output_path: str, encryption_key: str, ecc_block_size: int,
@@ -111,11 +112,11 @@ class Client:
                     print("Recived BPCS encoded from server!")
                     open(image_output_path, "wb").write(packet.body)
                 case "500":
+                    print(get_dissconnect_packet_line(packet))
                     break
                 case _:
                     if packet.code[0] == "4" or packet.code[0] == "5":
-                        print(f"An error occurred: {packet.desc}")
-                        self.disconnect()
+                        print(f"An error occurred: {get_dissconnect_packet_line(packet)}")
                         break
 
     def initiate_bpcs_decodeing_request(self, stegged_image_path: str, token_path: str) -> bytes:
@@ -141,11 +142,11 @@ class Client:
                     print("Recived decoded data from server!")
                     data = packet.body
                 case "500":
+                    print(get_dissconnect_packet_line(packet))
                     break
                 case _:
                     if packet.code[0] == "4" or packet.code[0] == "5":
-                        print(f"An error occurred: {packet.desc}")
-                        self.disconnect()
+                        print(f"An error occurred: {get_dissconnect_packet_line(packet)}")
                         break
         return data
 
@@ -175,11 +176,11 @@ class Client:
                 case "204":
                     can_fit = bool(packet.headers["can-fit"])
                 case "500":
+                    print(get_dissconnect_packet_line(packet))
                     break
                 case _:
                     if packet.code[0] == "4" or packet.code[0] == "5":
-                        print(f"An error occurred: {packet.desc}")
-                        self.disconnect()
+                        print(f"An error occurred: {get_dissconnect_packet_line(packet)}")
                         break
 
         return can_fit
@@ -202,11 +203,11 @@ class Client:
                     bitplane_slice = open(f"{output_directory_path}/{packet.headers["image-name"]}", "wb")
                     bitplane_slice.write(packet.body)
                 case "500":
+                    print(get_dissconnect_packet_line(packet))
                     break
                 case _:
                     if packet.code[0] == "4" or packet.code[0] == "5":
-                        print(f"An error occurred: {packet.desc}")
-                        self.disconnect()
+                        print(f"An error occurred: {get_dissconnect_packet_line(packet)}")
                         break
 
     def initiate_image_diff_calculation_request(self, image1_path: str, image2_path: str, exact_diff: bool,
@@ -234,16 +235,16 @@ class Client:
                     print(f"Blue channel max difference: {packet.headers["blue-diff"]}")
                     open(diff_image_path, "wb").write(packet.body)
                 case "500":
+                    print(get_dissconnect_packet_line(packet))
                     break
                 case _:
                     if packet.code[0] == "4" or packet.code[0] == "5":
-                        print(f"An error occurred: {packet.desc}")
-                        self.disconnect()
+                        print(f"An error occurred: {get_dissconnect_packet_line(packet)}")
                         break
 
     def disconnect(self) -> None:
         """
         Disconnects from the server; closes the socket
         """
-        print(f"Disconnecting from server")
+        print(f"Disconnecting from server...")
         self.skt.close()
