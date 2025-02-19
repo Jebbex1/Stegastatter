@@ -5,7 +5,7 @@ from shared.communication_protocol.packet_analyzer import PacketInfo
 
 PORT = 8374  # shared port
 CHARSET = 'utf-8'
-LFS = 32  # length field size
+LFS = 16  # length field size
 RECV_BUFFER_SIZE = 128000
 
 
