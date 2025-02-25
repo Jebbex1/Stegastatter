@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import threading
 
 import numpy as np
@@ -55,7 +56,7 @@ def embed_message_in_vessel(vessel_blocks: np.ndarray, alpha: float, message_blo
     :raises BPCSError: if given an incorrect complexity coefficient threshold
     :raises BPCSCapacityError: if the vessel blocks don't have enough capacity to embed all the needed data
     """
-    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger = multiprocessing.get_logger()
     update_logger.info("Starting embedding process...")
 
     if not 0 <= alpha <= 0.5:

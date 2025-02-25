@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import threading
 from typing import Generator, Any
 
@@ -33,7 +34,7 @@ def compute_all_block_indices(image_shape: tuple[int, int, int, int],
     slice(x_start, x_end, None), slice(y_start, y_end, None), channel_num, bit_plane_index
     :raises BPCSError: if given an image object with an incorrect shape
     """
-    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger = multiprocessing.get_logger()
     if len(image_shape) != 4:
         raise BPCSError(f"Image shape does not match: (width, height, channel number, bits per channel value). "
                         f"Given shape: {image_shape}")

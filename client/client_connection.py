@@ -12,6 +12,7 @@ from shared.utils import get_image_bytes, get_dissconnect_packet_line
 def new_server_connection(server_ip: str):
     text_logger = multiprocessing.get_logger()
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     tls_context.load_verify_locations("shared/certificate_authority/ca-cert.pem")
     tls_context.minimum_version = ssl.TLSVersion.TLSv1_3

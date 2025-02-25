@@ -1,5 +1,6 @@
 import io
 import logging
+import multiprocessing
 import threading
 
 from PIL import Image
@@ -9,7 +10,7 @@ from server.steganography.image_utils import open_image_from_bytes
 
 
 def show_diff(img1_bytes: bytes, img2_bytes: bytes, exact_diff: bool) -> tuple[tuple[int, int, int], bytes]:
-    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger = multiprocessing.get_logger()
 
     update_logger.info("Loading images...")
 

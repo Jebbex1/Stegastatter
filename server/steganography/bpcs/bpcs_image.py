@@ -1,5 +1,6 @@
 import io
 import logging
+import multiprocessing
 import threading
 
 import numpy as np
@@ -50,7 +51,7 @@ class BPCSImage:
         Initializes a new instance of the BPCSImage class.
         :param as_cgc: should the image be read in CGC instead of PBC?
         """
-        update_logger = logging.getLogger(str(threading.get_ident()))
+        update_logger = multiprocessing.get_logger()
         self.image_bytes = image_bytes
         self.as_gray = as_cgc
         self.num_of_bits_per_layer = 8
@@ -73,7 +74,7 @@ class BPCSImage:
         Writes the given image pixels to the given path.
         :param pixels: the pixels that describe the image we want to write
         """
-        update_logger = logging.getLogger(str(threading.get_ident()))
+        update_logger = multiprocessing.get_logger()
         pixels = BitPlane(pixels, self.as_gray).stack()
         img = array_to_image(pixels)
         update_logger.info("Loaded new bit plane blocks as an image!")

@@ -39,3 +39,9 @@ def get_dissconnect_packet_line(packet: PacketInfo):
         case _:
             return packet.desc
 
+
+def save_ssl_context(obj):
+    return obj.__class__, (obj.protocol,)
+
+
+

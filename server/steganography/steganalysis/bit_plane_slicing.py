@@ -1,5 +1,6 @@
 import io
 import logging
+import multiprocessing
 import threading
 import numpy as np
 from PIL import Image
@@ -8,7 +9,7 @@ from server.steganography.image_utils import open_image_from_bytes
 
 
 def slice_rgb_bit_planes(image_bytes: bytes):
-    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger = multiprocessing.get_logger()
 
     image = open_image_from_bytes(image_bytes)
 

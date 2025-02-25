@@ -1,6 +1,7 @@
 import itertools
 import builtins
 import logging
+import multiprocessing
 import threading
 from typing import Generator
 import numpy as np
@@ -41,7 +42,7 @@ def pbc_to_cgc(pixels: np.ndarray) -> np.ndarray:
     :param pixels: an array describing the pixels that uses PBC to represent values
     :return: an array of pixels that uses CGC to represent values instead of PBC
     """
-    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger = multiprocessing.get_logger()
     update_logger.info("Converting values from PBC to CGC...")
 
     def pbc_to_cgc_mapper(planes):
@@ -63,7 +64,7 @@ def cgc_to_pbc(arr: np.ndarray) -> np.ndarray:
     :param arr: n array of pixels that uses CGC to represent values
     :return: an array of pixels that uses PBC to represent values instead of CGC
     """
-    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger = multiprocessing.get_logger()
     update_logger.info("Converting values from CGC to PBC...")
 
     def cgc_to_pbc_mapper(planes):
@@ -119,7 +120,7 @@ class BitPlane:
         :param bit_num: the number of bits that each binary value should have
         :return: the converted numpy ndarray
         """
-        update_logger = logging.getLogger(str(threading.get_ident()))
+        update_logger = multiprocessing.get_logger()
         update_logger.info("Slicing image into bit plane blocks...")
 
         # reshape to a 1d list binary bit vals
@@ -137,7 +138,7 @@ class BitPlane:
         a decimal value instead of a bit-list. Also, converts self.arr back to PBC if self.gray is True. Keeps the
         shape of self.arr.
         """
-        update_logger = logging.getLogger(str(threading.get_ident()))
+        update_logger = multiprocessing.get_logger()
         temp_array = self.arr
         if self.gray:
             temp_array = cgc_to_pbc(temp_array)

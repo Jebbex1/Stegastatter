@@ -1,3 +1,4 @@
+import logging
 import sys
 import threading
 import multiprocessing
@@ -22,15 +23,15 @@ def start():
     loose_diff_image_path = "client/test_assets/loose_diff.png"
     slices_output_dir = "client/test_assets/bitplane_slices"
     token_path = "client/token.bin"
-    encryption_key = "Hello i am a keyyyyyyyyyyyyyyyyyyYYyyYYYYyyYYYYYY"
+    encryption_key = "Hello i am a keyyyyyyyyyyyyyyyyyyYYyyYYYYyy"
     ecc_block_size = 255
     ecc_symbol_num = 16
     bpcs_alpha = 0.3
 
-    """initiate_bpcs_encoding_request(server_address, vessel_image_path, stegged_image_path,
+    initiate_bpcs_encoding_request(server_address, vessel_image_path, stegged_image_path,
                                    open(embedding_image_in_path, "rb").read(), token_path, encryption_key,
                                    ecc_block_size, ecc_symbol_num, bpcs_alpha)
-
+    
     decoded_data = initiate_bpcs_decoding_request(server_address, stegged_image_path, token_path)
     open(embedded_image_out_path, "wb").write(decoded_data)
 
@@ -41,16 +42,14 @@ def start():
     initiate_image_diff_calculation_request(server_address, vessel_image_path, stegged_image_path, True,
                                             exact_diff_image_path)
 
-    """
     initiate_image_diff_calculation_request(server_address, vessel_image_path, stegged_image_path, False,
                                             loose_diff_image_path)
-    """
 
-    initiate_bitplane_slicing_request(server_address, exact_diff_image_path, slices_output_dir)"""
+    initiate_bitplane_slicing_request(server_address, exact_diff_image_path, slices_output_dir)
 
 
 if __name__ == '__main__':
-    """def start_1():
+    def start_1():
         threading.Thread(target=start).start()
     app = QApplication(sys.argv)
 
@@ -65,6 +64,4 @@ if __name__ == '__main__':
 
     window.show()
 
-    sys.exit(app.exec())"""
-
-    start()
+    sys.exit(app.exec())

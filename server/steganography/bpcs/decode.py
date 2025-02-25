@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import threading
 
 import numpy as np
@@ -74,7 +75,7 @@ def read_message_from_vessel(vessel_blocks: np.ndarray, alpha: float, block_shap
     :return: the decoded message in bytes
     :raises BPCSDecodeError: if there is a mismatch between the iv, conj map, and image blocks info
     """
-    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger = multiprocessing.get_logger()
     update_logger.info("Starting reading process...")
     accepted_blocks = []
     bit_planes = compute_all_block_indices(vessel_blocks.shape, block_shape)

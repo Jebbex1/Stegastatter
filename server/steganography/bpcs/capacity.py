@@ -1,5 +1,6 @@
 import logging
 import math
+import multiprocessing
 import threading
 
 import numpy as np
@@ -63,7 +64,7 @@ def calculate_if_fits(vessel_blocks: np.ndarray, image_shape: tuple[int, int, in
     :param message_bit_length: the bit length of the message
     :return: can a message of bit length message_bit_length fit into the image?
     """
-    update_logger = logging.getLogger(str(threading.get_ident()))
+    update_logger = multiprocessing.get_logger()
     update_logger.info("Calculating if embedding blocks will fit into the source image...")
     accepted_blocks_num = count_accepted_blocks(vessel_blocks, image_shape, (8, 8), alpha)
     embedding_blocks_num = calculate_embedding_blocks_num(accepted_blocks_num, (8, 8), alpha, message_bit_length)
