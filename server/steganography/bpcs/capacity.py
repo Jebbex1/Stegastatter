@@ -1,7 +1,5 @@
-import logging
 import math
 import multiprocessing
-import threading
 
 import numpy as np
 

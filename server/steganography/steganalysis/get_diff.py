@@ -1,7 +1,5 @@
 import io
-import logging
 import multiprocessing
-import threading
 
 from PIL import Image
 
