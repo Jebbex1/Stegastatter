@@ -2,6 +2,7 @@ import logging
 import os
 import socket
 import ssl
+import multiprocessing
 
 from shared.communication_protocol.transmission import PORT, send_packet, recv_packet
 from shared.communication_protocol.packet_builder import build_packet
@@ -9,7 +10,7 @@ from shared.utils import get_image_bytes, get_dissconnect_packet_line
 
 
 def new_server_connection(server_ip: str):
-    text_logger = logging.getLogger("text_logger")
+    text_logger = multiprocessing.get_logger()
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     tls_context.load_verify_locations("shared/certificate_authority/ca-cert.pem")
@@ -27,7 +28,7 @@ def new_server_connection(server_ip: str):
 def initiate_bpcs_encoding_request(server_address: str, vessel_image_path: str, image_output_path: str,
                                    message_bytes: bytes, token_output_path: str, encryption_key: str,
                                    ecc_block_size: int, ecc_symbol_size: int, alpha: float) -> None:
-    text_logger = logging.getLogger("text_logger")
+    text_logger = multiprocessing.get_logger()
     try:
         tls_socket = new_server_connection(server_address)
         params_dict = {
@@ -76,7 +77,7 @@ def initiate_bpcs_encoding_request(server_address: str, vessel_image_path: str, 
 
 
 def initiate_bpcs_decoding_request(server_address: str, stegged_image_path: str, token_path: str) -> bytes:
-    text_logger = logging.getLogger("text_logger")
+    text_logger = multiprocessing.get_logger()
     try:
         tls_socket = new_server_connection(server_address)
         stegged_image_bytes = get_image_bytes(stegged_image_path)
@@ -120,7 +121,7 @@ def initiate_bpcs_decoding_request(server_address: str, stegged_image_path: str,
 
 def initiate_bpcs_capacity_check_request(server_address: str, image_path: str, message_length: int,
                                          ecc_block_size: int, ecc_symbol_size: int, alpha: float) -> bool:
-    text_logger = logging.getLogger("text_logger")
+    text_logger = multiprocessing.get_logger()
     try:
         tls_socket = new_server_connection(server_address)
 
@@ -166,7 +167,7 @@ def initiate_bpcs_capacity_check_request(server_address: str, image_path: str, m
 
 
 def initiate_bitplane_slicing_request(server_address: str, image_path: str, output_directory_path: str):
-    text_logger = logging.getLogger("text_logger")
+    text_logger = multiprocessing.get_logger()
     try:
         tls_socket = new_server_connection(server_address)
 
@@ -205,7 +206,7 @@ def initiate_bitplane_slicing_request(server_address: str, image_path: str, outp
 
 def initiate_image_diff_calculation_request(server_address: str, image1_path: str, image2_path: str,
                                             exact_diff: bool, diff_image_path: str):
-    text_logger = logging.getLogger("text_logger")
+    text_logger = multiprocessing.get_logger()
     try:
         tls_socket = new_server_connection(server_address)
 

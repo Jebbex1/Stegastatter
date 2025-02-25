@@ -1,8 +1,10 @@
 import logging
+import multiprocessing
 import socket
 import ssl
 import sys
 import threading
+import multiprocessing as mp
 
 from reedsolo import ReedSolomonError
 
@@ -165,20 +167,21 @@ class Server:
         try:
             while True:
                 client_skt, addr = self.skt.accept()
-                self.logger.info(f"Accepted connection from {sock_name(client_skt)}")
-                threading.Thread(target=self.handle_client, args=(client_skt,)).start()
+                client = ClientInfo(client_skt)
+                self.logger.info(f"Accepted connection from {client.name}")
+
+                multiprocessing.Process(target=self.handle_client, args=(client,)).start()
         except KeyboardInterrupt:
             self.logger.info("Server closed")
 
-    def handle_client(self, client_skt: socket.socket) -> None:
+    def handle_client(self, client: ClientInfo) -> None:
         """
         A method to handle a client connection. Initiates ssl/tls handshake with the client, then does stuff (I left it
         empty because this is a template project). Handles any intentionally raised exception along with any connection
         or ssl/tls errors.
-        :param client_skt: the socket interface to wrap with a ssl/tls layer
+        :param client:
         """
-        client_skt.settimeout(10)
-        client = ClientInfo(client_skt)
+        client.socket.settimeout(10)
         try:
             if client.name in self.clients:
                 client.disconnect(build_packet("403"))
