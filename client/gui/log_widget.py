@@ -2,7 +2,7 @@ import logging
 import multiprocessing
 
 from PySide6.QtWidgets import QTextEdit
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QTextCursor
 
 
 class LogWidget(QTextEdit):
@@ -16,4 +16,5 @@ class LogWidget(QTextEdit):
 
     def add_text(self, record: logging.LogRecord) -> bool:
         self.append(record.getMessage())
+        self.moveCursor(QTextCursor.MoveOperation.End)
         return True
