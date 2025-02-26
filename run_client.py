@@ -55,9 +55,6 @@ if __name__ == '__main__':
 
     window = MainWindow("Test", QSize(640, 360), QSize(1280, 720))
 
-    text_box = LogWidget()
-    window.add_widget_as_dock(text_box, "Server Log", Qt.DockWidgetArea.RightDockWidgetArea)
-
     trigger = QPushButton(window)
     trigger.clicked.connect(start_1)
     window.setCentralWidget(trigger)
