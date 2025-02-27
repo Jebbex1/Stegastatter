@@ -3,30 +3,30 @@ import sys
 from PySide6.QtCore import QSize
 from PySide6.QtWidgets import QComboBox, QGroupBox, QVBoxLayout, QCheckBox, QPushButton
 
-from client.gui.steg_options import OPTIONS
+from client.gui.algorithm_options import OPTIONS
 
 
-class SteganographyAlgorithmWidget(QGroupBox):
+class AlgorithmSelectorWidget(QGroupBox):
     def __init__(self):
         super().__init__()
 
-        self.algorithm_widget = QComboBox()
+        self.algorithm_selector_widget = QComboBox()
         for option in OPTIONS.keys():
-            self.algorithm_widget.addItem(option)
+            self.algorithm_selector_widget.addItem(option)
+        self.algorithm_selector_widget.currentIndexChanged.connect(self.update_action_selector_widget)
 
-        self.action_widget = QComboBox()
+        self.action_selector_widget = QComboBox()
         self.update_action_selector_widget()
 
         self.vbox = QVBoxLayout()
-        self.vbox.addWidget(self.algorithm_widget)
-        self.vbox.addWidget(self.action_widget)
+        self.vbox.addWidget(self.algorithm_selector_widget)
+        self.vbox.addWidget(self.action_selector_widget)
         self.vbox.addStretch()
 
-        self.algorithm_widget.currentIndexChanged.connect(self.update_action_selector_widget)
         self.setLayout(self.vbox)
 
     def update_action_selector_widget(self):
-        self.action_widget.clear()
-        option = self.algorithm_widget.currentText()
+        self.action_selector_widget.clear()
+        option = self.algorithm_selector_widget.currentText()
         for action in OPTIONS[option]:
-            self.action_widget.addItem(action)
+            self.action_selector_widget.addItem(action)

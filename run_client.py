@@ -4,7 +4,7 @@ import threading
 import multiprocessing
 
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QApplication, QPushButton
+from PySide6.QtWidgets import QApplication, QPushButton, QGroupBox
 
 from client.client_connection import (initiate_bpcs_encoding_request,
                                       initiate_bpcs_decoding_request, initiate_bitplane_slicing_request,
@@ -53,10 +53,10 @@ if __name__ == '__main__':
         threading.Thread(target=start).start()
     app = QApplication(sys.argv)
 
-    window = MainWindow("Test", QSize(640, 360), QSize(1280, 720))
+    window = MainWindow("Test")
 
-    trigger = QPushButton(window)
-    trigger.clicked.connect(start_1)
+    trigger = QGroupBox()
+
     window.setCentralWidget(trigger)
 
     window.show()
