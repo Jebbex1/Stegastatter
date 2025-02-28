@@ -6,17 +6,14 @@ from PySide6.QtWidgets import QWidget, QGroupBox, QVBoxLayout, QFileDialog, QLay
 from PySide6.QtCore import Qt
 
 
-class CoreMenuWidget(QGroupBox):
+class CoreMenuLayout(QVBoxLayout):
     def __init__(self):
         super().__init__()
-        self.vbox = QVBoxLayout()
-        self.vbox.addStretch()
-        self.setLayout(self.vbox)
-
+        self.addStretch()
         self.selected_files = {}
 
     def select_existing_file(self, caption: str, file_identifier: str, file_filter: str):
-        self.selected_files[file_identifier] = QFileDialog.getOpenFileName(self,
+        self.selected_files[file_identifier] = QFileDialog.getOpenFileName(None,
                                                                            caption=caption,
                                                                            filter=file_filter)[0]
 
@@ -45,9 +42,13 @@ class CoreMenuWidget(QGroupBox):
         return select_file_button
 
 
-class EncodeMenuWidget(CoreMenuWidget):
+class EncodeMenuLayout(CoreMenuLayout):
     def __init__(self):
         super().__init__()
+
+        self.select_input_message_file_button = self.get_any_file_select_button("Select File to Encode into Vessel",
+                                                                                "input_message")
+        self.addWidget(self.select_input_message_file_button)
 
         self.show_advanced_settings_checkbox = QCheckBox()
         self.show_advanced_settings_checkbox.setText("Show advanced settings")
@@ -65,10 +66,10 @@ class EncodeMenuWidget(CoreMenuWidget):
         self.ecc_symbol_num_line_edit.setPlaceholderText("RS-ECC Symbol Number")
         self.ecc_symbol_num_line_edit.hide()
 
-        self.vbox.addWidget(self.key_line_edit)
-        self.vbox.addWidget(self.show_advanced_settings_checkbox)
-        self.vbox.addWidget(self.ecc_block_size_line_edit)
-        self.vbox.addWidget(self.ecc_symbol_num_line_edit)
+        self.addWidget(self.key_line_edit)
+        self.addWidget(self.show_advanced_settings_checkbox)
+        self.addWidget(self.ecc_block_size_line_edit)
+        self.addWidget(self.ecc_symbol_num_line_edit)
 
     def show_advanced_settings(self):
         self.ecc_block_size_line_edit.show()
@@ -85,13 +86,13 @@ class EncodeMenuWidget(CoreMenuWidget):
             self.hide_advanced_settings()
 
 
-class DecodeMenuWidget(CoreMenuWidget):
+class DecodeMenuLayout(CoreMenuLayout):
     def __init__(self):
         super().__init__()
         self.select_input_image_file_button = self.get_image_select_button("Select Input Image",
                                                                            "input_image")
-        self.vbox.insertWidget(0, self.select_input_image_file_button)
+        self.insertWidget(0, self.select_input_image_file_button)
 
         self.select_input_token_file_button = self.get_bin_file_select_button("Select Decoding Token",
                                                                               "input_token")
-        self.vbox.insertWidget(1, self.select_input_token_file_button)
+        self.insertWidget(1, self.select_input_token_file_button)

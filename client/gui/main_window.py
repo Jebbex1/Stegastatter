@@ -1,8 +1,7 @@
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QDockWidget, QWidget, QLayout
+from PySide6.QtWidgets import QMainWindow, QDockWidget
 
-from client.gui.bpcs_widgets import BPCSEncodeMenuWidget, BPCSDecodeMenuWidget
-from client.gui.options_widget import AlgorithmSelectorWidget
+from client.gui.steg_control_panel_widget import ControlPanelWidget
 from client.gui.log_widget import LogWidget
 
 
@@ -13,7 +12,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(init_size)
         self.setDockNestingEnabled(True)
 
-        self.control_panel_widget = AlgorithmSelectorWidget()
+        self.control_panel_widget = ControlPanelWidget()
         cpanel_dock = QDockWidget("Steganography Control Panel")
         cpanel_dock.setWidget(self.control_panel_widget)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, cpanel_dock)
