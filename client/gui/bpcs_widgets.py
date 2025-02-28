@@ -30,6 +30,6 @@ class BPCSEncodeMenuWidget(EncodeMenuWidget):
         self.min_alpha_line_edit.hide()
 
 
-class BPCSDecodeMenunWidget(DecodeMenuWidget):
+class BPCSDecodeMenuWidget(DecodeMenuWidget):
     def __init__(self):
         super().__init__()

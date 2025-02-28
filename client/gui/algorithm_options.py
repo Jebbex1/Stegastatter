@@ -1,15 +1,19 @@
+from PySide6.QtWidgets import QGroupBox
+
+from client.gui.bpcs_widgets import BPCSEncodeMenuWidget, BPCSDecodeMenuWidget
+
 OPTIONS = {
-    "LSB (Least Significant Bit)": [
-        "Encode",
-        "Decode"
-    ],
-    "BPCS (Bit-Plane Complexity Segmentation)": [
-        "Encode",
-        "Decode",
-        "Check capacity"
-    ],
-    "Steganalysis": [
-        "Get image diffrence",
-        "Slice bit-planes"
-    ],
+    "LSB (Least Significant Bit)": {
+        "Encode": QGroupBox,
+        "Decode": QGroupBox,
+    },
+    "BPCS (Bit-Plane Complexity Segmentation)": {
+        "Encode": BPCSEncodeMenuWidget,
+        "Decode": BPCSDecodeMenuWidget,
+        "Check capacity": QGroupBox,
+    },
+    "Steganalysis": {
+        "Get image diffrence": QGroupBox,
+        "Slice bit-planes": QGroupBox,
+    },
 }

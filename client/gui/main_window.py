@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QDockWidget, QWidget, QLayout
 
-from client.gui.bpcs_widgets import BPCSEncodeMenuWidget, BPCSDecodeMenunWidget
+from client.gui.bpcs_widgets import BPCSEncodeMenuWidget, BPCSDecodeMenuWidget
 from client.gui.options_widget import AlgorithmSelectorWidget
 from client.gui.log_widget import LogWidget
 
@@ -22,3 +22,6 @@ class MainWindow(QMainWindow):
         log_dock = QDockWidget("Request Status")
         log_dock.setWidget(self.log_widget)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, log_dock)
+
+
+
