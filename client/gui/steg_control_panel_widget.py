@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QComboBox, QGroupBox, QVBoxLayout, QLayout
+from PySide6.QtWidgets import QComboBox, QGroupBox, QVBoxLayout, QLayout, QWidget, QBoxLayout
 
 from client.gui.menu_options import OPTIONS
 from client.gui.menus.core_menus import CoreMenuLayout
@@ -15,15 +15,7 @@ def clear_layout(layout: QLayout):
             widget.deleteLater()
         else:
             clear_layout(item.layout())
-
-
-def copy_layout_contents(source_layout: QLayout, target_layout: QLayout):
-    clear_layout(target_layout)
-
-    while source_layout.count():
-        item = source_layout.takeAt(0)
-        if item.widget():
-            target_layout.addWidget(item.widget())
+    layout.deleteLater()
 
 
 class ControlPanelWidget(QGroupBox):
@@ -35,7 +27,7 @@ class ControlPanelWidget(QGroupBox):
         self.action_selector_widget = QComboBox()
         self.algorithm_menu_container_widget = QGroupBox()
         self.algorithm_menu_container_widget.setTitle("Algorithm Parameters")
-        self.algorithm_menu_container_widget.setLayout(CoreMenuLayout())
+        self.algorithm_menu_container_widget.setLayout(QBoxLayout(QBoxLayout.Direction.TopToBottom))
 
         for option in OPTIONS.keys():
             self.algorithm_selector_widget.addItem(option)
@@ -63,4 +55,10 @@ class ControlPanelWidget(QGroupBox):
     def update_menu_widget(self):
         option = self.algorithm_selector_widget.currentText(), self.action_selector_widget.currentText()
         new_layout = OPTIONS[option[0]][option[1]]()
-        copy_layout_contents(new_layout, self.algorithm_menu_container_widget.layout())
+
+        prev_layout = self.algorithm_menu_container_widget.layout().takeAt(0)
+
+        if prev_layout is not None:
+            clear_layout(prev_layout.layout())
+
+        self.algorithm_menu_container_widget.layout().insertLayout(0, new_layout)

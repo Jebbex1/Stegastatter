@@ -9,7 +9,6 @@ from PySide6.QtCore import Qt
 class CoreMenuLayout(QVBoxLayout):
     def __init__(self):
         super().__init__()
-        self.addStretch()
         self.selected_files = {}
 
     def select_existing_file(self, caption: str, file_identifier: str, file_filter: str):
