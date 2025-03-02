@@ -30,18 +30,6 @@ def decode(source_image_bytes: bytes, token: bytes) -> bytes:
     return unwrap(wrapped, ecc_block_size, ecc_symbol_num, verification_tag, nonce, update_header, key)
 
 
-def check_if_fits_from_bytes(source_image_bytes: bytes, message: bytes, ecc_block_size: int = 255,
-                             ecc_symbol_num: int = 16, alpha: float = 0.3) -> bool:
-    """
-    Checks if the message can fit in the image at source_image_path.
-    """
-    img = BPCSImage(source_image_bytes, as_cgc=True)
-    message_length = len(message)
-    wrapped_length = math.ceil(ecc_block_size*((message_length+16)/(ecc_block_size-ecc_symbol_num)))
-    image_shape = img.pixels.shape
-    return calculate_if_fits(img.pixels, image_shape, alpha, wrapped_length * 8)
-
-
 def check_if_fits_from_arbitrary(source_image_bytes: bytes, arbitrary_byte_length: int, ecc_block_size: int = 255,
                                  ecc_symbol_num: int = 16, alpha: float = 0.3) -> bool:
     """

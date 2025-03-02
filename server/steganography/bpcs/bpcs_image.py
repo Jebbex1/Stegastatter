@@ -2,41 +2,11 @@ import io
 import multiprocessing
 
 import numpy as np
-from PIL import Image
 
 from server.steganography.bpcs.bit_plane import BitPlane
 from server.steganography.bpcs.decode import read_message_from_vessel
 from server.steganography.bpcs.encode import embed_message_in_vessel
-from server.steganography.steganography_errors import SteganographyError
-from shared.communication_protocol.communication_errors import PacketContentsError
-from server.steganography.image_utils import open_image_from_bytes
-
-
-def write_image(out_path: str, image: Image.Image) -> None:
-    """
-    Saves an image to a given path.
-    :param out_path: the given path
-    :param image: the image object to be saved
-    """
-    image.save(out_path, out_path.split('.')[-1])
-
-
-def image_to_array(im: Image.Image) -> np.ndarray:
-    """
-    Converts a PIL image to a numpy array
-    :param im: the image object to convert
-    :return: the numpy array representing the image
-    """
-    return np.array(im)
-
-
-def array_to_image(arr: np.ndarray) -> Image.Image:
-    """
-    Converts a numpy array to a PIL image
-    :param arr: the numpy array representing the image
-    :return: the converted PIL image
-    """
-    return Image.fromarray(np.uint8(arr))
+from server.steganography.image_utils import open_image_from_bytes, image_to_array, array_to_image, image_to_bytes
 
 
 class BPCSImage:
@@ -76,9 +46,7 @@ class BPCSImage:
         pixels = BitPlane(pixels, self.as_gray).stack()
         img = array_to_image(pixels)
         update_logger.info("Loaded new bit plane blocks as an image!")
-        image_bytes = io.BytesIO()
-        img.save(image_bytes, format="PNG")
-        return image_bytes.getvalue()
+        return image_to_bytes(img)
 
     def encode(self, message_blocks: np.ndarray, message_bit_length: int, alpha: float,
                check_capacity: bool) -> np.ndarray:
@@ -90,6 +58,7 @@ class BPCSImage:
         :param check_capacity: should the program check the images' capacity before starting to embed the message blocks
         :return: the resulting pixels after encoding
         """
+
         new_arr = np.array(self.pixels, copy=True)
         encoded_arr = embed_message_in_vessel(new_arr, alpha, message_blocks, message_bit_length, (8, 8), check_capacity)
         return encoded_arr
