@@ -24,13 +24,31 @@ CODES: dict[str, tuple[str, list[str]]] = {
                 "ecc-symbol-num",
                 "alpha",
             ]),
+    "101": ("LSB steganography encoding request",  # vessel image in body, followed by message upload
+            [
+                "encryption-key",
+                "ecc-block-size",
+                "ecc-symbol-num",
+                "number-of-sacrificed-bits"
+            ]),
+
     "120": ("BPCS steganography decoding request",  # vessel image in body, followed by token upload
             []),
+    "121": ("LSB steganography decoding request",  # vessel image in body, followed by token upload
+            []),
+
     "140": ("BPCS capacity check request",  # image in body
             [
                 "ecc-block-size",
                 "ecc-symbol-num",
                 "alpha",
+                "message-length",
+            ]),
+    "141": ("LSB capacity check request",  # image in body
+            [
+                "ecc-block-size",
+                "ecc-symbol-num",
+                "number-of-sacrificed-bits",
                 "message-length",
             ]),
     "160": ("Bitplane slicing request",  # image in body
