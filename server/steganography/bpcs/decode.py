@@ -3,7 +3,8 @@ import multiprocessing
 import numpy as np
 
 from server.steganography.bpcs.dimension_computing import compute_all_block_indices
-from server.steganography.bpcs.block_operations import bits_to_bytes, blocks_to_bits
+from server.steganography.bpcs.block_operations import blocks_to_bits
+from server.steganography.bit_operations_utils import bits_to_bytes
 from server.steganography.bpcs.bpcs_errors import BPCSDecodeError
 from server.steganography.bpcs.core import calc_bpcs_complexity_coefficient, conjugate
 from server.steganography.bpcs.initilization_vector import slice_iv_from_accepted_blocks, slice_conj_blocks_from_accepted_blocks

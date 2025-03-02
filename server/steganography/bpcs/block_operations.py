@@ -49,26 +49,3 @@ def blocks_to_bits(blocks: np.ndarray) -> list[bool]:
     """
     blocks = [np.array(block).reshape(-1) for block in blocks]
     return np.hstack(blocks).flatten().tolist()
-
-
-def bits_to_bytes(bits: list[bool]) -> bytes:
-    """
-    Converts a list of bits into bytes.
-    :param bits: the given list of bits
-    :return: a bytes type value, representing the value of the list of bits
-    """
-    spare_bits_length = len(bits) % 8  # calculate the length of any spare bits
-
-    # since the message was initially read by the byte, any spares must have been added to create a block
-    bits = bits[:len(bits) - spare_bits_length]  # get rid of any spare bits
-
-    bytes_number = int(len(bits) / 8)
-    message_bytes = np.resize(np.array(bits), [bytes_number, 8])
-
-    def byte_to_decimal_int(byte: np.ndarray) -> int:
-        return int('0b' + ''.join(str(int(x)) for x in byte.tolist()), 2)
-
-    def decimal_int_to_bytes(byte) -> bytes:
-        return byte_to_decimal_int(byte).to_bytes()
-
-    return b''.join([decimal_int_to_bytes(byte) for byte in message_bytes])
