@@ -7,10 +7,10 @@ from server.steganography.image_utils import open_image_from_bytes
 from server.steganography.lsb.lsb_errors import LSBCapacityError, LSBError
 
 # Mask used to put one (ex:1->00000001, 2->00000010) associated with OR bitwise
-TRUE_MASK_VALUES = [1, 2, 4, 8, 16, 32, 64, 128]
+TRUE_BIT_MASK_VALUES = [1, 2, 4, 8, 16, 32, 64, 128]
 
 # Mask used to put zero (ex:254->11111110, 253->11111101) associated with AND bitwise
-FALSE_MASK_VALUES = [254, 253, 251, 247, 239, 223, 191, 127]
+FALSE_BIT_MASK_VALUES = [254, 253, 251, 247, 239, 223, 191, 127]
 
 
 def construct_iv(data_bit_length: int, iv_bit_length: int) -> list[bool]:
@@ -30,11 +30,11 @@ class LSBImage:
         if not 0 < self.max_bits_per_byte <= 8:
             raise LSBError("The number of bits dedicated to storing data per byte must be 0 < num <= 8")
 
-        self.one_mask_values = TRUE_MASK_VALUES[:sacrificed_bits]
+        self.one_mask_values = TRUE_BIT_MASK_VALUES[:sacrificed_bits]
         self.one_mask_max = self.one_mask_values[-1]
         self.one_mask = self.one_mask_values.pop(0)
 
-        self.zero_max_values = FALSE_MASK_VALUES[:sacrificed_bits]
+        self.zero_max_values = FALSE_BIT_MASK_VALUES[:sacrificed_bits]
         self.zero_mask_max = self.zero_max_values[-1]
         self.zero_mask = self.zero_max_values.pop(0)
 
@@ -44,11 +44,6 @@ class LSBImage:
         update_logger.info("Loaded Image!")
 
     def increment_cursor(self):
-        if self.cursor_channel < len(self.image.getbands()) - 1:
-            self.cursor_channel += 1
-            return
-        self.cursor_channel = 0
-
         if self.cursor_width < self.image.width - 1:
             self.cursor_width += 1
             return
@@ -58,6 +53,11 @@ class LSBImage:
             self.cursor_height += 1
             return
         self.cursor_height = 0
+
+        if self.cursor_channel < len(self.image.getbands()) - 1:
+            self.cursor_channel += 1
+            return
+        self.cursor_channel = 0
 
         if self.one_mask < self.one_mask_max:
             self.one_mask = self.one_mask_values.pop(0)
@@ -98,13 +98,16 @@ class LSBImage:
 
     def encode(self, data: bytes, check_capacity: bool):
         update_logger = multiprocessing.get_logger()
-        update_logger.info("Starting embedding process...")()
+        update_logger.info("Starting embedding process...")
 
         data_byte_length = len(data)
 
         if check_capacity:
+            update_logger.info("Checking if image has enough capacity to contain the sent data...")
             if not self.check_capacity(data_byte_length*8):
+                update_logger.info("Image does NOT have enough capacity!")
                 raise LSBCapacityError("Carrier image not big enough to contain all the data to encode.")
+            update_logger.info("Image has enough capacity!")
 
         iv_bits = construct_iv(data_byte_length*8, self.iv_bit_len)
         data_bits = bytes_to_bit_list(data)
@@ -113,22 +116,22 @@ class LSBImage:
         self.put_binary_value(data_bits)
 
         update_logger.info("Finished embedding process!")
+
         return self.image
 
     def decode(self):
         update_logger = multiprocessing.get_logger()
         update_logger.info("Starting reading process...")
 
-        data_length = bit_list_to_int(self.read_bits(self.iv_bit_len))
-        output = b""
-        for i in range(data_length):
-            output += bits_to_bytes(self.read_byte())
+        iv = self.read_bits(self.iv_bit_len)
+        data_length = bit_list_to_int(iv)
+        output = self.read_bits(data_length*8)
 
         update_logger.info("Reading process finished!")
-        return output
+        return bits_to_bytes(output)
 
     def check_capacity(self, data_bit_length: int) -> bool:
         update_logger = multiprocessing.get_logger()
         update_logger.info("Calculating if sent data will fit into the image...")
         return ((self.image.width * self.image.height * len(self.image.getbands()) * self.max_bits_per_byte)
-                < data_bit_length + self.iv_bit_len)
+                >= data_bit_length + self.iv_bit_len)

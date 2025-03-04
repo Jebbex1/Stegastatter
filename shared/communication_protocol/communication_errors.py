@@ -25,3 +25,10 @@ class PacketContentsError(CommunicationError):
     3. Expected packet contents to be of a certain type / structure
     """
     pass
+
+
+class UnexpectedPacketError(CommunicationError):
+    """
+    For when a side sends a valid, yet unexpected packet.
+    """
+    pass

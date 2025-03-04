@@ -77,6 +77,57 @@ def initiate_bpcs_encoding_request(server_address: str, vessel_image_path: str, 
         text_logger.info(f"There was en error regarding the TLS connection {e}")
 
 
+def initiate_lsb_encoding_request(server_address: str, vessel_image_path: str, image_output_path: str,
+                                  message_bytes: bytes, token_output_path: str, encryption_key: str,
+                                  ecc_block_size: int, ecc_symbol_size: int, num_of_sacrificed_bits: int):
+    text_logger = multiprocessing.get_logger()
+    try:
+        tls_socket = new_server_connection(server_address)
+        params_dict = {
+            "encryption-key": encryption_key,
+            "ecc-block-size": str(ecc_block_size),
+            "ecc-symbol-num": str(ecc_symbol_size),
+            "number-of-sacrificed-bits": str(num_of_sacrificed_bits),
+        }
+
+        vessel_image_bytes = get_image_bytes(vessel_image_path)
+
+        request_packet = build_packet("101", headers=params_dict, body=vessel_image_bytes)
+        message_packet = build_packet("000", body=message_bytes)
+
+        send_packet(tls_socket, request_packet)
+        send_packet(tls_socket, message_packet)
+
+        while True:
+            packet = recv_packet(tls_socket)
+
+            match packet.code:
+                case "000":
+                    text_logger.info("Received LSB token image from server!")
+                    open(token_output_path, "wb").write(packet.body)
+                case "200":
+                    text_logger.info("Server accepted LSB encoding request!")
+                case "201":
+                    text_logger.info(packet.headers["status"])
+                case "202":
+                    text_logger.info("Received LSB encoded from server!")
+                    open(image_output_path, "wb").write(packet.body)
+                case "500":
+                    text_logger.info(get_dissconnect_packet_line(packet))
+                    break
+                case _:
+                    if packet.code[0] == "4" or packet.code[0] == "5":
+                        text_logger.info(f"An error occurred: {get_dissconnect_packet_line(packet)}")
+                        break
+        text_logger.info(f"Disconnecting from server...")
+        tls_socket.close()
+
+    except ConnectionError:
+        text_logger.info("Server closed connection unexpectedly.")
+    except ssl.SSLError as e:
+        text_logger.info(f"There was en error regarding the TLS connection {e}")
+
+
 def initiate_bpcs_decoding_request(server_address: str, stegged_image_path: str, token_path: str) -> bytes:
     text_logger = multiprocessing.get_logger()
     try:
@@ -100,7 +151,50 @@ def initiate_bpcs_decoding_request(server_address: str, stegged_image_path: str,
                 case "201":
                     text_logger.info(packet.headers["status"])
                 case "203":
-                    text_logger.info("Received decoded data from server!")
+                    text_logger.info("Received BPCS decoded data from server!")
+                    data = packet.body
+                case "500":
+                    text_logger.info(get_dissconnect_packet_line(packet))
+                    break
+                case _:
+                    if packet.code[0] == "4" or packet.code[0] == "5":
+                        text_logger.info(f"An error occurred: {get_dissconnect_packet_line(packet)}")
+                        break
+
+        text_logger.info(f"Disconnecting from server...")
+        tls_socket.close()
+        return data
+
+    except ConnectionError:
+        text_logger.info("Server closed connection unexpectedly.")
+    except ssl.SSLError as e:
+        text_logger.info(f"There was en error regarding the TLS connection {e}")
+
+
+def initiate_lsb_decoding_request(server_address: str, stegged_image_path: str, token_path: str) -> bytes:
+    text_logger = multiprocessing.get_logger()
+    try:
+        tls_socket = new_server_connection(server_address)
+        stegged_image_bytes = get_image_bytes(stegged_image_path)
+        token_bytes = open(token_path, "rb").read()
+
+        request_packet = build_packet("121", body=stegged_image_bytes)
+        token_packet = build_packet("000", body=token_bytes)
+
+        send_packet(tls_socket, request_packet)
+        send_packet(tls_socket, token_packet)
+
+        data = b""
+
+        while True:
+            packet = recv_packet(tls_socket)
+            match packet.code:
+                case "200":
+                    text_logger.info("Server accepted LSB decoding request!")
+                case "201":
+                    text_logger.info(packet.headers["status"])
+                case "203":
+                    text_logger.info("Received LSB decoded data from server!")
                     data = packet.body
                 case "500":
                     text_logger.info(get_dissconnect_packet_line(packet))
@@ -145,6 +239,53 @@ def initiate_bpcs_capacity_check_request(server_address: str, image_path: str, m
             match packet.code:
                 case "200":
                     text_logger.info("Server accepted BPCS capacity check request!")
+                case "201":
+                    text_logger.info(packet.headers["status"])
+                case "204":
+                    can_fit = bool(packet.headers["can-fit"])
+                case "500":
+                    text_logger.info(get_dissconnect_packet_line(packet))
+                    break
+                case _:
+                    if packet.code[0] == "4" or packet.code[0] == "5":
+                        text_logger.info(f"An error occurred: {get_dissconnect_packet_line(packet)}")
+                        break
+
+        text_logger.info(f"Disconnecting from server...")
+        tls_socket.close()
+        return can_fit
+
+    except ConnectionError:
+        text_logger.info("Server closed connection unexpectedly.")
+    except ssl.SSLError as e:
+        text_logger.info(f"There was en error regarding the TLS connection {e}")
+
+
+def initiate_lsb_capacity_check_request(server_address: str, image_path: str, message_length: int,
+                                        ecc_block_size: int, ecc_symbol_size: int, num_of_sacrificed_bits: int) -> bool:
+    text_logger = multiprocessing.get_logger()
+    try:
+        tls_socket = new_server_connection(server_address)
+
+        image_bytes = get_image_bytes(image_path)
+
+        headers = {
+            "ecc-block-size": str(ecc_block_size),
+            "ecc-symbol-num": str(ecc_symbol_size),
+            "number-of-sacrificed-bits": str(num_of_sacrificed_bits),
+            "message-length": str(message_length),
+        }
+        request_packet = build_packet("141", headers=headers, body=image_bytes)
+
+        send_packet(tls_socket, request_packet)
+
+        can_fit = None
+
+        while True:
+            packet = recv_packet(tls_socket)
+            match packet.code:
+                case "200":
+                    text_logger.info("Server accepted LSB capacity check request!")
                 case "201":
                     text_logger.info(packet.headers["status"])
                 case "204":
