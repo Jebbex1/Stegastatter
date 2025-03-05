@@ -31,11 +31,11 @@ def start():
     lsb_number_of_sacrificed_bits = 2
 
     print("b")
-    initiate_bpcs_encoding_request(server_address, vessel_image_path, stegged_image_path,
-                                   open(message_in_path, "rb").read(), token_path, encryption_key,
-                                   ecc_block_size, ecc_symbol_num, 0.3)
+    initiate_lsb_encoding_request(server_address, vessel_image_path, stegged_image_path,
+                                  open(message_in_path, "rb").read(), token_path, encryption_key,
+                                  ecc_block_size, ecc_symbol_num, lsb_number_of_sacrificed_bits)
     print("c")
-    decoded_data = initiate_bpcs_decoding_request(server_address, stegged_image_path, token_path)
+    decoded_data = initiate_lsb_decoding_request(server_address, stegged_image_path, token_path)
     open(message_out_path, "wb").write(decoded_data)
     print("d")
 

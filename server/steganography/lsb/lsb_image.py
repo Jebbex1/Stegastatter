@@ -2,7 +2,8 @@ import math
 import multiprocessing
 from typing import Generator, Any
 
-from server.steganography.bit_operations_utils import bits_to_bytes, bit_list_to_int, bytes_to_bit_list
+from server.steganography.bit_operations_utils import bits_to_bytes, bit_list_to_int, bytes_to_bit_list, \
+    bitlist_str_to_list
 from server.steganography.image_utils import open_image_from_bytes
 from server.steganography.lsb.lsb_errors import LSBCapacityError, LSBError
 
@@ -14,7 +15,7 @@ FALSE_BIT_MASK_VALUES = [254, 253, 251, 247, 239, 223, 191, 127]
 
 
 def construct_iv(data_bit_length: int, iv_bit_length: int) -> list[bool]:
-    iv = list(bytes_to_bit_list(int.to_bytes(data_bit_length, math.ceil(iv_bit_length / 8))))
+    iv = bitlist_str_to_list(bin(data_bit_length)[2:], iv_bit_length)
     iv = iv[:iv_bit_length]
     return iv
 
@@ -24,7 +25,7 @@ class LSBImage:
         update_logger = multiprocessing.get_logger()
         update_logger.info("Loading image...")
         self.image = open_image_from_bytes(image_bytes)
-        self.iv_bit_len = len(bin(self.image.width*self.image.height*len(self.image.getbands()) * sacrificed_bits)[2:])
+        self.iv_bit_len = len(bin(self.image.width*self.image.height*len(self.image.getbands())*sacrificed_bits)[2:])
         self.max_bits_per_byte = sacrificed_bits
 
         if not 0 < self.max_bits_per_byte <= 8:
@@ -102,6 +103,8 @@ class LSBImage:
 
         data_byte_length = len(data)
 
+        print(data_byte_length * 8)
+
         if check_capacity:
             update_logger.info("Checking if image has enough capacity to contain the sent data...")
             if not self.check_capacity(data_byte_length*8):
@@ -125,7 +128,9 @@ class LSBImage:
 
         iv = self.read_bits(self.iv_bit_len)
         data_length = bit_list_to_int(iv)
-        output = self.read_bits(data_length*8)
+        output = self.read_bits(data_length)
+
+        print(data_length)
 
         update_logger.info("Reading process finished!")
         return bits_to_bytes(output)

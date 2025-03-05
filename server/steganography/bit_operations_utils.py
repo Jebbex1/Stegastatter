@@ -1,5 +1,3 @@
-from typing import Generator, Any
-
 import numpy as np
 
 
@@ -27,14 +25,21 @@ def bits_to_bytes(bits: list[bool]) -> bytes:
 
 
 def bit_list_to_int(bitlist: list[bool]) -> int:
-    out = 0
-    for bit in bitlist:
-        out = (out << 1) | bit
-    return out
+    return int("".join((str(int(i)) for i in bitlist)), 2)
 
 
-def bytes_to_bit_list(st: bytes) -> Generator[bool, Any, None]:
+def bytes_to_bit_list(st: bytes, length: int = None) -> list[bool]:
+    bitlist = []
     bytes_gen = (b for b in st)
     for b in bytes_gen:
         for i in reversed(range(8)):
-            yield bool((b >> i) & True)
+            bitlist.append(bool((b >> i) & True))
+    if length is not None:
+        bitlist = (max(length - len(bitlist), 0) * [False]) + bitlist
+    return bitlist
+
+
+def bitlist_str_to_list(bitlist_str: str, length: int):
+    bitlist = list(bool(int(i)) for i in bitlist_str)
+    bitlist = (max(length - len(bitlist), 0) * [False]) + bitlist
+    return bitlist
