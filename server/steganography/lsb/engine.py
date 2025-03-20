@@ -28,8 +28,7 @@ def lsb_check_if_fits_from_arbitrary(source_image_bytes: bytes, arbitrary_byte_l
     wrapped_length = math.ceil(ecc_block_size * ((arbitrary_byte_length + 16) / (ecc_block_size - ecc_symbol_num)))
     return img.check_capacity(wrapped_length * 8)
 
-
-if __name__ == '__main__':
+"""if __name__ == '__main__':
     # in -> 33152
     in_image_path = "server/steganography/lsb/big2.png"
     out_image_path = "server/steganography/lsb/out1.png"
@@ -43,4 +42,4 @@ if __name__ == '__main__':
 
     stegged_image = LSBImage(open(out_image_path, "rb").read(), num_of_sacrificed_bits)
     text_out = stegged_image.decode()
-    open(message_out_path, "wb").write(text_out)
+    open(message_out_path, "wb").write(text_out)"""

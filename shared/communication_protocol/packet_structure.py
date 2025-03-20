@@ -32,9 +32,7 @@ CODES: dict[str, tuple[str, list[str]]] = {
                 "number-of-sacrificed-bits"
             ]),
 
-    "120": ("BPCS steganography decoding request",  # vessel image in body, followed by token upload
-            []),
-    "121": ("LSB steganography decoding request",  # vessel image in body, followed by token upload
+    "120": ("Steganography decoding request",  # vessel image in body, followed by token upload
             []),
 
     "140": ("BPCS capacity check request",  # image in body
