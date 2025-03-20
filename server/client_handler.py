@@ -4,6 +4,7 @@ import ssl
 import multiprocessing as mp
 import sys
 
+from server.steganography.content_wrapper.wrapper import Algorithms, TokenError
 from server.steganography.lsb.engine import lsb_encode, lsb_decode, lsb_check_if_fits_from_arbitrary
 from shared.communication_protocol.transmission import recv_packet, send_packet
 from shared.communication_protocol.packet_builder import build_packet
@@ -62,8 +63,7 @@ class ClientHandler:
             match request_packet.code:
                 case "100": self.handle_bpcs_encoding_request(request_packet)
                 case "101": self.handle_lsb_encoding_request(request_packet)
-                case "120": self.handle_bpcs_decoding_request(request_packet)
-                case "121": self.handle_lsb_decoding_request(request_packet)
+                case "120": self.handle_decoding_request(request_packet)
                 case "140": self.handle_bpcs_capacity_request(request_packet)
                 case "141": self.handle_lsb_capacity_request(request_packet)
                 case "160": self.handle_bitplane_slicing_request(request_packet)
@@ -161,7 +161,7 @@ class ClientHandler:
         send_packet(self.socket, encoding_product_packet)
         send_packet(self.socket, token_packet)
 
-    def handle_bpcs_decoding_request(self, request_packet: PacketInfo):
+    def handle_decoding_request(self, request_packet: PacketInfo):
         request_packet.verify_code("120")
         steged_bytes = request_packet.body
 
@@ -171,23 +171,11 @@ class ClientHandler:
 
         send_packet(self.socket, build_packet("200"))
 
-        decoded_data = bpcs_decode(steged_bytes, token)
-
-        products_packet = build_packet("203", body=decoded_data)
-
-        send_packet(self.socket, products_packet)
-
-    def handle_lsb_decoding_request(self, request_packet: PacketInfo):
-        request_packet.verify_code("121")
-        steged_bytes = request_packet.body
-
-        stegged_packet = recv_packet(self.socket)
-        stegged_packet.verify_code("000")
-        token = stegged_packet.body
-
-        send_packet(self.socket, build_packet("200"))
-
-        decoded_data = lsb_decode(steged_bytes, token)
+        match token[0]:
+            case Algorithms.LSB: decoded_data = lsb_decode(steged_bytes, token)
+            case Algorithms.BPCS: decoded_data = bpcs_decode(steged_bytes, token)
+            case _:
+                raise TokenError("No matching steganography algorithm for provided token.")
 
         products_packet = build_packet("203", body=decoded_data)
 
