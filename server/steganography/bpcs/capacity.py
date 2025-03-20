@@ -5,6 +5,7 @@ import numpy as np
 
 from server.steganography.bpcs.core import calc_bpcs_complexity_coefficient
 from server.steganography.bpcs.dimension_computing import compute_all_block_indices
+from server.steganography.bpcs.initilization_vector import get_prefix_length
 
 
 def count_accepted_blocks(vessel_blocks: np.ndarray, image_shape: tuple[int, int, int, int],
@@ -67,3 +68,26 @@ def calculate_if_fits(vessel_blocks: np.ndarray, image_shape: tuple[int, int, in
     accepted_blocks_num = count_accepted_blocks(vessel_blocks, image_shape, (8, 8), alpha)
     embedding_blocks_num = calculate_embedding_blocks_num(accepted_blocks_num, (8, 8), alpha, message_bit_length)
     return accepted_blocks_num > embedding_blocks_num
+
+
+def calculate_maximum_capacity(vessel_blocks: np.ndarray, image_shape: tuple[int, int, int, int],
+                               ecc_block_size: int, ecc_symbol_num: int, alpha: float) -> int:
+    block_shape_length = 8
+    accepted_blocks_num = count_accepted_blocks(vessel_blocks, image_shape,
+                                                (block_shape_length, block_shape_length), alpha)
+    bits_per_prefixed_block = block_shape_length ** 2 - get_prefix_length(block_shape_length ** 2, alpha)
+    iv_bit_length = math.ceil(math.log2(accepted_blocks_num)) + math.ceil(math.log2(block_shape_length ** 2))
+
+    max_bit_embbeding_input_length = math.floor(
+        ((block_shape_length ** 2) * ((bits_per_prefixed_block * (accepted_blocks_num - 3)) - (iv_bit_length + 1)))
+        /
+        (bits_per_prefixed_block + 1)
+    )
+
+    max_message_byte_length = math.floor(
+        ((max_bit_embbeding_input_length * (ecc_block_size - ecc_symbol_num))
+         /
+         (8 * ecc_block_size))
+        - 16
+    )
+    return max_message_byte_length
