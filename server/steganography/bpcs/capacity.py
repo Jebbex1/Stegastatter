@@ -1,6 +1,4 @@
 import math
-import multiprocessing
-
 import numpy as np
 
 from server.steganography.bpcs.core import calc_bpcs_complexity_coefficient
@@ -53,24 +51,6 @@ def calculate_embedding_blocks_num(accepted_blocks_num: int, block_shape: tuple[
     return iv_block_length + conjugation_map_block_length + message_block_length
 
 
-def calculate_if_fits(vessel_blocks: np.ndarray, image_shape: tuple[int, int, int, int], alpha: float,
-                      message_bit_length: int) -> bool:
-    """
-    Calculates whether a message of arbitrary length can fit in an image together with all the decoding info blocks. If
-    the total block length of the embedding payload is less than the number of accepted blocks, then the message fits.
-    :param vessel_blocks: the images' vessel blocks
-    :param image_shape: the shape of image
-    :param alpha: the minimum complexity coefficient threshold
-    :param message_bit_length: the bit length of the message
-    :return: can a message of bit length message_bit_length fit into the image?
-    """
-    update_logger = multiprocessing.get_logger()
-    update_logger.info("Calculating if embedding blocks will fit into the source image...")
-    accepted_blocks_num = count_accepted_blocks(vessel_blocks, image_shape, (8, 8), alpha)
-    embedding_blocks_num = calculate_embedding_blocks_num(accepted_blocks_num, (8, 8), alpha, message_bit_length)
-    return accepted_blocks_num > embedding_blocks_num
-
-
 def calculate_maximum_capacity(vessel_blocks: np.ndarray, image_shape: tuple[int, int, int, int],
                                ecc_block_size: int, ecc_symbol_num: int, alpha: float) -> int:
     block_shape_length = 8
@@ -79,10 +59,10 @@ def calculate_maximum_capacity(vessel_blocks: np.ndarray, image_shape: tuple[int
     bits_per_prefixed_block = block_shape_length ** 2 - get_prefix_length(block_shape_length ** 2, alpha)
     iv_bit_length = math.ceil(math.log2(accepted_blocks_num)) + math.ceil(math.log2(block_shape_length ** 2))
 
-    max_bit_embbeding_input_length = math.floor(
+    max_bit_embedding_input_length = math.floor(
         ((block_shape_length ** 2) * ((bits_per_prefixed_block * (accepted_blocks_num - 3)) - (iv_bit_length + 1)))
         /
         (bits_per_prefixed_block + 1)
     )
 
-    return get_max_unwapped_length(max_bit_embbeding_input_length, ecc_block_size, ecc_symbol_num)
+    return get_max_unwapped_length(max_bit_embedding_input_length, ecc_block_size, ecc_symbol_num)

@@ -20,17 +20,10 @@ def lsb_decode(source_image_bytes: bytes, token: bytes) -> bytes:
     return unwrap(wrapped, ecc_block_size, ecc_symbol_num, verification_tag, nonce, update_header, key)
 
 
-def lsb_check_if_fits_from_arbitrary(source_image_bytes: bytes, arbitrary_byte_length: int, ecc_block_size: int = 255,
-                                     ecc_symbol_num: int = 16, num_of_sacrificed_bits: int = 2) -> bool:
-    img = LSBImage(source_image_bytes, num_of_sacrificed_bits)
-    wrapped_length = math.ceil(ecc_block_size * ((arbitrary_byte_length + 16) / (ecc_block_size - ecc_symbol_num)))
-    return img.check_capacity(wrapped_length * 8)
-
-
 def lsb_calculate_max_capacity(source_image_bytes: bytes, ecc_block_size: int = 255, ecc_symbol_num: int = 16,
                                num_of_sacrificed_bits: int = 2) -> int:
     img = LSBImage(source_image_bytes, num_of_sacrificed_bits)
-    total_avilable_bits = img.image.width*img.image.height*img.image.getbands()*num_of_sacrificed_bits
+    total_available_bits = img.image.width*img.image.height*len(img.image.getbands())*num_of_sacrificed_bits
     iv_bit_len = img.iv_bit_len
-    max_bit_embbeding_input_length = total_avilable_bits - iv_bit_len
-    return get_max_unwapped_length(max_bit_embbeding_input_length, ecc_block_size, ecc_symbol_num)
+    max_bit_embedding_input_length = total_available_bits - iv_bit_len
+    return get_max_unwapped_length(max_bit_embedding_input_length, ecc_block_size, ecc_symbol_num)

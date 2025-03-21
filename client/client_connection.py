@@ -171,8 +171,8 @@ def initiate_decoding_request(server_address: str, stegged_image_path: str, toke
         text_logger.info(f"There was en error regarding the TLS connection {e}")
 
 
-def initiate_bpcs_capacity_check_request(server_address: str, image_path: str, message_length: int,
-                                         ecc_block_size: int, ecc_symbol_size: int, alpha: float) -> bool:
+def initiate_bpcs_max_capacity_calculation_request(server_address: str, image_path: str, ecc_block_size: int,
+                                                   ecc_symbol_size: int, alpha: float) -> int:
     text_logger = multiprocessing.get_logger()
     try:
         tls_socket = new_server_connection(server_address)
@@ -183,13 +183,12 @@ def initiate_bpcs_capacity_check_request(server_address: str, image_path: str, m
             "ecc-block-size": str(ecc_block_size),
             "ecc-symbol-num": str(ecc_symbol_size),
             "alpha": str(alpha),
-            "message-length": str(message_length),
         }
         request_packet = build_packet("140", headers=headers, body=image_bytes)
 
         send_packet(tls_socket, request_packet)
 
-        can_fit = None
+        max_capacity = 0
 
         while True:
             packet = recv_packet(tls_socket)
@@ -199,7 +198,7 @@ def initiate_bpcs_capacity_check_request(server_address: str, image_path: str, m
                 case "201":
                     text_logger.info(packet.headers["status"])
                 case "204":
-                    can_fit = bool(packet.headers["can-fit"])
+                    max_capacity = int(packet.headers["max-bytes-capacity"])
                 case "500":
                     text_logger.info(get_dissconnect_packet_line(packet))
                     break
@@ -210,7 +209,8 @@ def initiate_bpcs_capacity_check_request(server_address: str, image_path: str, m
 
         text_logger.info(f"Disconnecting from server...")
         tls_socket.close()
-        return can_fit
+
+        return max_capacity
 
     except ConnectionError:
         text_logger.info("Server closed connection unexpectedly.")
@@ -218,8 +218,8 @@ def initiate_bpcs_capacity_check_request(server_address: str, image_path: str, m
         text_logger.info(f"There was en error regarding the TLS connection {e}")
 
 
-def initiate_lsb_capacity_check_request(server_address: str, image_path: str, message_length: int,
-                                        ecc_block_size: int, ecc_symbol_size: int, num_of_sacrificed_bits: int) -> bool:
+def initiate_lsb_max_capacity_calculation_request(server_address: str, image_path: str, ecc_block_size: int, ecc_symbol_size: int,
+                                                  num_of_sacrificed_bits: int) -> int:
     text_logger = multiprocessing.get_logger()
     try:
         tls_socket = new_server_connection(server_address)
@@ -230,13 +230,12 @@ def initiate_lsb_capacity_check_request(server_address: str, image_path: str, me
             "ecc-block-size": str(ecc_block_size),
             "ecc-symbol-num": str(ecc_symbol_size),
             "number-of-sacrificed-bits": str(num_of_sacrificed_bits),
-            "message-length": str(message_length),
         }
         request_packet = build_packet("141", headers=headers, body=image_bytes)
 
         send_packet(tls_socket, request_packet)
 
-        can_fit = None
+        max_capacity = 0
 
         while True:
             packet = recv_packet(tls_socket)
@@ -246,7 +245,7 @@ def initiate_lsb_capacity_check_request(server_address: str, image_path: str, me
                 case "201":
                     text_logger.info(packet.headers["status"])
                 case "204":
-                    can_fit = bool(packet.headers["can-fit"])
+                    max_capacity = int(packet.headers["max-bytes-capacity"])
                 case "500":
                     text_logger.info(get_dissconnect_packet_line(packet))
                     break
@@ -257,7 +256,8 @@ def initiate_lsb_capacity_check_request(server_address: str, image_path: str, me
 
         text_logger.info(f"Disconnecting from server...")
         tls_socket.close()
-        return can_fit
+
+        return max_capacity
 
     except ConnectionError:
         text_logger.info("Server closed connection unexpectedly.")
