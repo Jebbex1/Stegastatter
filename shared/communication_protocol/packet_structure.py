@@ -35,20 +35,19 @@ CODES: dict[str, tuple[str, list[str]]] = {
     "120": ("Steganography decoding request",  # vessel image in body, followed by token upload
             []),
 
-    "140": ("BPCS capacity check request",  # image in body
+    "140": ("BPCS maximum capacity calculation request",  # image in body
             [
                 "ecc-block-size",
                 "ecc-symbol-num",
                 "alpha",
-                "message-length",
             ]),
-    "141": ("LSB capacity check request",  # image in body
+    "141": ("LSB maximum capacity calculation request",  # image in body
             [
                 "ecc-block-size",
                 "ecc-symbol-num",
                 "number-of-sacrificed-bits",
-                "message-length",
             ]),
+
     "160": ("Bitplane slicing request",  # image in body
             []),
     "161": ("Image difference calculation request",
@@ -67,9 +66,9 @@ CODES: dict[str, tuple[str, list[str]]] = {
             []),
     "203": ("Decoding products",  # data in body
             []),
-    "204": ("Capacity check products",
+    "204": ("Capacity calculation products",
             [
-                "can-fit",
+                "max-bytes-capacity",
             ]),
     "260": ("Bitplane slicing products image sequence",  # image in body
             [

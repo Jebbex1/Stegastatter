@@ -2,7 +2,7 @@ import math
 
 from server.steganography.bpcs.bpcs_image import BPCSImage
 from server.steganography.bpcs.encode import get_message_blocks_from_bytes
-from server.steganography.bpcs.capacity import calculate_if_fits
+from server.steganography.bpcs.capacity import calculate_maximum_capacity
 from server.steganography.content_wrapper.wrapper import wrap_bpcs, get_bpcs_token_info, unwrap
 
 
@@ -30,12 +30,9 @@ def bpcs_decode(source_image_bytes: bytes, token: bytes) -> bytes:
     return unwrap(wrapped, ecc_block_size, ecc_symbol_num, verification_tag, nonce, update_header, key)
 
 
-def bpcs_check_if_fits_from_arbitrary(source_image_bytes: bytes, arbitrary_byte_length: int, ecc_block_size: int = 255,
-                                      ecc_symbol_num: int = 16, alpha: float = 0.3) -> bool:
-    """
-    Checks if a message with an arbitrary bit length can fit in the image at source_image_path.
-    """
+def bpcs_calculate_max_capacity(source_image_bytes: bytes, ecc_block_size: int = 255,
+                                ecc_symbol_num: int = 16, alpha: float = 0.3) -> int:
     img = BPCSImage(source_image_bytes, as_cgc=True)
     image_shape = img.pixels.shape
-    wrapped_length = math.ceil(ecc_block_size * ((arbitrary_byte_length + 16) / (ecc_block_size - ecc_symbol_num)))
-    return calculate_if_fits(img.pixels, image_shape, alpha, wrapped_length * 8)
+    max_message_byte_length = calculate_maximum_capacity(img.pixels, image_shape, ecc_block_size, ecc_symbol_num, alpha)
+    return max_message_byte_length

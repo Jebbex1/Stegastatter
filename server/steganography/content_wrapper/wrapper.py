@@ -1,3 +1,4 @@
+import math
 import multiprocessing
 import struct
 from enum import IntEnum
@@ -153,3 +154,12 @@ def unwrap(wrapped: bytes, ecc_block_size: int, ecc_symbol_num: int, verificatio
     dec = decrypt(ciphertext, key, verification_tag, nonce, update_header)
     update_logger.info("Unwrapping completed!")
     return dec
+
+
+def get_max_unwapped_length(max_bit_embbeding_input_length: int, ecc_block_size: int, ecc_symbol_num: int) -> int:
+    return math.floor(
+        ((max_bit_embbeding_input_length * (ecc_block_size - ecc_symbol_num))
+         /
+         (8 * ecc_block_size))
+        - 16
+    )

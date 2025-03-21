@@ -5,7 +5,7 @@ import multiprocessing as mp
 import sys
 
 from server.steganography.content_wrapper.wrapper import Algorithms, TokenError
-from server.steganography.lsb.engine import lsb_encode, lsb_decode, lsb_check_if_fits_from_arbitrary
+from server.steganography.lsb.engine import lsb_encode, lsb_decode, lsb_calculate_max_capacity
 from shared.communication_protocol.transmission import recv_packet, send_packet
 from shared.communication_protocol.packet_builder import build_packet
 from server.steganography.steganography_errors import SteganographyError, ContentWrapperError
@@ -13,7 +13,7 @@ from shared.communication_protocol.packet_analyzer import PacketInfo
 from shared.utils import sock_name
 from shared.communication_protocol.communication_errors import TransmissionProtocolError, PacketStructureError, \
     PacketContentsError
-from server.steganography.bpcs.engine import bpcs_encode, bpcs_decode, bpcs_check_if_fits_from_arbitrary
+from server.steganography.bpcs.engine import bpcs_encode, bpcs_decode, bpcs_calculate_max_capacity
 from server.steganography.steganalysis.bit_plane_slicing import slice_rgb_bit_planes
 from server.steganography.steganalysis.get_diff import show_diff
 from reedsolo import ReedSolomonError
@@ -64,8 +64,8 @@ class ClientHandler:
                 case "100": self.handle_bpcs_encoding_request(request_packet)
                 case "101": self.handle_lsb_encoding_request(request_packet)
                 case "120": self.handle_decoding_request(request_packet)
-                case "140": self.handle_bpcs_capacity_request(request_packet)
-                case "141": self.handle_lsb_capacity_request(request_packet)
+                case "140": self.handle_bpcs_max_capacity_calculation_request(request_packet)
+                case "141": self.handle_lsb_max_capacity_calculation_request(request_packet)
                 case "160": self.handle_bitplane_slicing_request(request_packet)
                 case "161": self.handle_image_diff_request(request_packet)
                 case _:
@@ -163,7 +163,7 @@ class ClientHandler:
 
     def handle_decoding_request(self, request_packet: PacketInfo):
         request_packet.verify_code("120")
-        steged_bytes = request_packet.body
+        stegged_bytes = request_packet.body
 
         stegged_packet = recv_packet(self.socket)
         stegged_packet.verify_code("000")
@@ -172,8 +172,8 @@ class ClientHandler:
         send_packet(self.socket, build_packet("200"))
 
         match token[0]:
-            case Algorithms.LSB: decoded_data = lsb_decode(steged_bytes, token)
-            case Algorithms.BPCS: decoded_data = bpcs_decode(steged_bytes, token)
+            case Algorithms.LSB: decoded_data = lsb_decode(stegged_bytes, token)
+            case Algorithms.BPCS: decoded_data = bpcs_decode(stegged_bytes, token)
             case _:
                 raise TokenError("No matching steganography algorithm for provided token.")
 
@@ -181,7 +181,7 @@ class ClientHandler:
 
         send_packet(self.socket, products_packet)
 
-    def handle_bpcs_capacity_request(self, request_packet: PacketInfo):
+    def handle_bpcs_max_capacity_calculation_request(self, request_packet: PacketInfo):
         request_packet.verify_code("140")
         params_dict = request_packet.headers
         vessel_bytes = request_packet.body
@@ -190,19 +190,18 @@ class ClientHandler:
             ecc_block_size = int(params_dict["ecc-block-size"])
             ecc_symbol_num = int(params_dict["ecc-symbol-num"])
             alpha = float(params_dict["alpha"])
-            message_length = int(params_dict["message-length"])
         except ValueError as e:
             raise PacketContentsError(f"Packet header types are invalid: {e}")
 
         send_packet(self.socket, build_packet("200"))
 
-        can_fit = bpcs_check_if_fits_from_arbitrary(vessel_bytes, message_length, ecc_block_size, ecc_symbol_num, alpha)
+        max_capacity = bpcs_calculate_max_capacity(vessel_bytes, ecc_block_size, ecc_symbol_num, alpha)
 
-        products_packet = build_packet("204", headers={"can-fit": str(can_fit)})
+        products_packet = build_packet("204", headers={"max-bytes-capacity": str(max_capacity)})
 
         send_packet(self.socket, products_packet)
 
-    def handle_lsb_capacity_request(self, request_packet: PacketInfo):
+    def handle_lsb_max_capacity_calculation_request(self, request_packet: PacketInfo):
         request_packet.verify_code("141")
         params_dict = request_packet.headers
         vessel_bytes = request_packet.body
@@ -211,16 +210,14 @@ class ClientHandler:
             ecc_block_size = int(params_dict["ecc-block-size"])
             ecc_symbol_num = int(params_dict["ecc-symbol-num"])
             num_of_sacrificed_bits = int(params_dict["number-of-sacrificed-bits"])
-            message_length = int(params_dict["message-length"])
         except ValueError as e:
             raise PacketContentsError(f"Packet header types are invalid: {e}")
 
         send_packet(self.socket, build_packet("200"))
 
-        can_fit = lsb_check_if_fits_from_arbitrary(vessel_bytes, message_length, ecc_block_size, ecc_symbol_num,
-                                                   num_of_sacrificed_bits)
+        max_capacity = lsb_calculate_max_capacity(vessel_bytes, ecc_block_size, ecc_symbol_num, num_of_sacrificed_bits)
 
-        products_packet = build_packet("204", headers={"can-fit": str(can_fit)})
+        products_packet = build_packet("204", headers={"max-bytes-capacity": str(max_capacity)})
 
         send_packet(self.socket, products_packet)
 
