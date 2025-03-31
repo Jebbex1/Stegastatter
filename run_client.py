@@ -27,7 +27,7 @@ def start():
     token_path = "client/token.bin"
     encryption_key = "Hello i am a keyyyyyyyyyyyyyyyyyyYYyyYYy"
     ecc_block_size = 255
-    ecc_symbol_num = 32
+    ecc_symbol_num = 16
     lsb_number_of_sacrificed_bits = 4
     bpcs_min_alpha = 0.3
 
@@ -59,9 +59,11 @@ def start():
 
 
 if __name__ == '__main__':
-    def start_1():
+    text_logger = multiprocessing.get_logger()
+    text_logger.setLevel(logging.INFO)
+    text_logger.addHandler(logging.StreamHandler(sys.stdout))
+    """def start_1():
         threading.Thread(target=start).start()
-
 
     app = QApplication(sys.argv)
 
@@ -74,5 +76,6 @@ if __name__ == '__main__':
 
     window.show()
 
-    sys.exit(app.exec())
-    
+    sys.exit(app.exec())"""
+
+    start()
