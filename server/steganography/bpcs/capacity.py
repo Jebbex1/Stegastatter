@@ -28,6 +28,18 @@ def count_accepted_blocks(vessel_blocks: np.ndarray, image_shape: tuple[int, int
     return noise_blocks_num
 
 
+def collect_accepted_blocks(vessel_blocks: np.ndarray, image_shape: tuple[int, int, int, int],
+                            block_shape: tuple[int, int], alpha: float):
+    bit_plane_dims = compute_all_block_indices(image_shape, block_shape)
+
+    accepted_blocks = set()
+    for bit_plane in bit_plane_dims:
+        block = vessel_blocks[tuple(bit_plane)]  # get the current block to handle
+        if calc_bpcs_complexity_coefficient(block) >= alpha:
+            accepted_blocks.add(tuple(bit_plane))
+    return accepted_blocks
+
+
 def calculate_embedding_blocks_num(accepted_blocks_num: int, block_shape: tuple[int, int], alpha: float,
                                    message_bit_length: int) -> int:
     """
