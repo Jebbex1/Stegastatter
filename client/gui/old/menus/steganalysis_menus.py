@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QCheckBox
 
-from client.gui.menus.core_menus import CoreMenuLayout
+from client.gui.old.menus.core_menus import CoreMenuLayout
 
 
 class ImageDiffMenuLayout(CoreMenuLayout):

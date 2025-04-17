@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QLineEdit
 
-from client.gui.menus.core_menus import EncodeMenuLayout, DecodeMenuLayout
+from client.gui.old.menus.core_menus import EncodeMenuLayout, DecodeMenuLayout
 
 
 class BPCSEncodeMenuLayout(EncodeMenuLayout):

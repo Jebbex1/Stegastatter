@@ -1,7 +1,6 @@
-from PySide6.QtWidgets import QComboBox, QGroupBox, QVBoxLayout, QLayout, QWidget, QBoxLayout
+from PySide6.QtWidgets import QComboBox, QGroupBox, QVBoxLayout, QLayout, QBoxLayout
 
-from client.gui.menu_options import OPTIONS
-from client.gui.menus.core_menus import CoreMenuLayout
+from client.gui.old.menu_options import OPTIONS
 
 
 def clear_layout(layout: QLayout):

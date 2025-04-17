@@ -1,8 +1,8 @@
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import QMainWindow, QDockWidget
 
-from client.gui.steg_control_panel_widget import ControlPanelWidget
-from client.gui.log_widget import LogWidget
+from client.gui.old.steg_control_panel_widget import ControlPanelWidget
+from client.gui.old.log_widget import LogWidget
 
 
 class MainWindow(QMainWindow):

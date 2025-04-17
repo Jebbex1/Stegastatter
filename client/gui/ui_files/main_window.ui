@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1416</width>
+    <height>730</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="central_widget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QTabWidget" name="tab_widget">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::NoFocus</enum>
+      </property>
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Tab 1</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Tab 2</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menu_bar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1416</width>
+     <height>33</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_steganography">
+    <property name="title">
+     <string>Steganography</string>
+    </property>
+    <widget class="QMenu" name="menu_encode">
+     <property name="title">
+      <string>Encode data into an image</string>
+     </property>
+     <addaction name="action_encode_lsb"/>
+     <addaction name="action_encode_bpcs"/>
+    </widget>
+    <widget class="QMenu" name="menu_capacity">
+     <property name="title">
+      <string>Check the capacity of an image</string>
+     </property>
+     <widget class="QMenu" name="menu_capacity_max_calculation">
+      <property name="title">
+       <string>Get the maximum capacity of an image</string>
+      </property>
+      <addaction name="action_capacity_max_calculation_lsb"/>
+      <addaction name="action_capacity_max_calculation_bpcs"/>
+     </widget>
+     <widget class="QMenu" name="menu_capacity_can_fit">
+      <property name="title">
+       <string>Check if a file can fit into an image</string>
+      </property>
+      <addaction name="action_capacity_can_fit_lsb"/>
+      <addaction name="action_capacity_can_fit_bpcs"/>
+     </widget>
+     <addaction name="menu_capacity_max_calculation"/>
+     <addaction name="menu_capacity_can_fit"/>
+    </widget>
+    <addaction name="menu_encode"/>
+    <addaction name="action_decode_generic"/>
+    <addaction name="menu_capacity"/>
+   </widget>
+   <widget class="QMenu" name="menu_steganalysis">
+    <property name="title">
+     <string>Steganalysis</string>
+    </property>
+    <addaction name="action_slice_image_bit_planes"/>
+    <addaction name="action_get_diff"/>
+   </widget>
+   <addaction name="menu_steganography"/>
+   <addaction name="menu_steganalysis"/>
+  </widget>
+  <widget class="QDockWidget" name="dock_status_log">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::DockWidgetArea::LeftDockWidgetArea|Qt::DockWidgetArea::RightDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Server Status Updates</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dock_status_log_contents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTextEdit" name="status_log">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="action_decode_generic">
+   <property name="text">
+    <string>Extract data from an image</string>
+   </property>
+  </action>
+  <action name="action_encode_lsb">
+   <property name="text">
+    <string>Using LSB Steganography</string>
+   </property>
+  </action>
+  <action name="action_capacity_max_calculation_lsb">
+   <property name="text">
+    <string>Using LSB Steganography</string>
+   </property>
+  </action>
+  <action name="action_capacity_can_fit_lsb">
+   <property name="text">
+    <string>Using LSB Steganography</string>
+   </property>
+  </action>
+  <action name="action_encode_bpcs">
+   <property name="text">
+    <string>Using BPCS Steganography</string>
+   </property>
+  </action>
+  <action name="action_capacity_max_calculation_bpcs">
+   <property name="text">
+    <string>Using BPCS Steganography</string>
+   </property>
+  </action>
+  <action name="action_capacity_can_fit_bpcs">
+   <property name="text">
+    <string>Using BPCS Steganography</string>
+   </property>
+  </action>
+  <action name="action_slice_image_bit_planes">
+   <property name="text">
+    <string>Slice image bit-planes</string>
+   </property>
+  </action>
+  <action name="action_get_diff">
+   <property name="text">
+    <string>Get diffrence between two images</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

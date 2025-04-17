@@ -1,18 +1,11 @@
-import logging
 import sys
 import threading
-import multiprocessing
 
-from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QApplication, QPushButton, QGroupBox
+from PySide6.QtWidgets import QApplication, QPushButton
 
-from client.client_connection import (initiate_bpcs_encoding_request,
-                                      initiate_bitplane_slicing_request,
-                                      initiate_bpcs_max_capacity_calculation_request, initiate_image_diff_calculation_request,
-                                      initiate_lsb_encoding_request,
-                                      initiate_lsb_max_capacity_calculation_request, initiate_decoding_request)
-from client.gui.log_widget import LogWidget
-from client.gui.main_window import MainWindow
+from client.client_connection import (initiate_bpcs_max_capacity_calculation_request,
+                                      initiate_lsb_max_capacity_calculation_request)
+from client.gui.old.main_window import MainWindow
 
 
 def start():
