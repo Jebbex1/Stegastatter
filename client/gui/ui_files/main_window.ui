@@ -95,31 +95,6 @@
    <addaction name="menu_steganography"/>
    <addaction name="menu_steganalysis"/>
   </widget>
-  <widget class="QDockWidget" name="dock_status_log">
-   <property name="features">
-    <set>QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::DockWidgetArea::LeftDockWidgetArea|Qt::DockWidgetArea::RightDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Server Status Updates</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dock_status_log_contents">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QTextEdit" name="status_log">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <action name="action_decode_generic">
    <property name="text">
     <string>Extract data from an image</string>
