@@ -1,7 +1,6 @@
 from enum import IntEnum
 
-from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QDockWidget, QMainWindow
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QMainWindow
 
 from client.gui.ui_wigdet_generator import generate_custom_button, generate_encryption_key_field_widget, \
     generate_lsb_params_widget, generate_bpcs_params_widget, generate_ecc_params_widget
@@ -45,8 +44,13 @@ class StegastatterApplication:
         self.selected_algorithm_profile = 0
 
         self.main_window: QMainWindow = load_ui("client/gui/ui_files/main_window.ui")
-        self.selected_algorithm_widget = None
+        self.main_window.statusBar().showMessage("Hello")
 
+        self.connect_actions()
+
+        self.main_window.show()
+
+    def connect_actions(self):
         self.main_window.action_encode_lsb.triggered.connect(self.use_lsb_encoding_widget)
         self.main_window.action_encode_bpcs.triggered.connect(self.use_bpcs_encoding_widget)
         self.main_window.action_decode_generic.triggered.connect(self.use_decoding_widget)
@@ -56,8 +60,6 @@ class StegastatterApplication:
         self.main_window.action_capacity_can_fit_bpcs.triggered.connect(self.use_bpcs_check_fits_widget)
         self.main_window.action_slice_image_bit_planes.triggered.connect(self.use_bit_plane_slicing_widget)
         self.main_window.action_get_diff.triggered.connect(self.use_image_diff_widget)
-
-        self.main_window.show()
 
     def prompt_get_vessel_input_path(self):
         self.selected_vessel_input_path = QFileDialog.getOpenFileName(self.main_window,
@@ -186,81 +188,50 @@ class StegastatterApplication:
     def use_lsb_encoding_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.LSB_ENCODE
         widget = self.create_linked_encoding_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
     def use_bpcs_encoding_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.BPCS_ENCODE
         widget = self.create_linked_encoding_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
     def use_decoding_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.GENERIC_DECODE
         widget = self.create_linked_decoding_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
     def use_lsb_max_capacity_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.LSB_MAX_CAPACITY
         widget = self.create_linked_max_capacity_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
     def use_bpcs_max_capacity_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.BPCS_MAX_CAPACITY
         widget = self.create_linked_max_capacity_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
     def use_lsb_check_fits_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.LSB_CHECK_CAPACITY
         widget = self.create_linked_check_fits_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
     def use_bpcs_check_fits_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.BPCS_CHECK_CAPACITY
         widget = self.create_linked_check_fits_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
     def use_bit_plane_slicing_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.BIT_PLANE_SLICING
         widget = self.create_linked_bit_plane_slicing_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
     def use_image_diff_widget(self):
         self.selected_algorithm_profile = AlgorithmProfiles.IMAGE_DIFF
         widget = self.create_linked_image_diff_widget()
-        self.set_widget_as_algorithm_profile_dock(widget)
+        self.update_menu_widget(widget)
 
-    def set_widget_as_algorithm_profile_dock(self, widget: QWidget):
-        dock: QDockWidget = load_ui("client/gui/ui_files/algorithm_profile_container.ui")
-
-        match self.selected_algorithm_profile:
-            case AlgorithmProfiles.LSB_ENCODE:
-                dock.setWindowTitle("LSB Encoding Menu")
-            case AlgorithmProfiles.BPCS_ENCODE:
-                dock.setWindowTitle("BPCS Encoding Menu")
-            case AlgorithmProfiles.GENERIC_DECODE:
-                dock.setWindowTitle("Decoding Menu")
-            case AlgorithmProfiles.LSB_MAX_CAPACITY:
-                dock.setWindowTitle("LSB Max Capacity Menu")
-            case AlgorithmProfiles.LSB_CHECK_CAPACITY:
-                dock.setWindowTitle("LSB Check if a File Fits Menu")
-            case AlgorithmProfiles.BPCS_MAX_CAPACITY:
-                dock.setWindowTitle("BPCS Max Capacity Menu")
-            case AlgorithmProfiles.BPCS_CHECK_CAPACITY:
-                dock.setWindowTitle("BPCS Check if a File Fits Menu")
-            case AlgorithmProfiles.BIT_PLANE_SLICING:
-                dock.setWindowTitle("Bit Plane Slicing Menu")
-            case AlgorithmProfiles.IMAGE_DIFF:
-                dock.setWindowTitle("Image Difference Menu")
-
+    def update_menu_widget(self, widget: QWidget):
         widget.layout().addStretch()
 
-        dock.setWidget(widget)
-
-        new_area = self.main_window.dockWidgetArea(self.selected_algorithm_widget)
-
-        if self.main_window.dockWidgetArea(self.selected_algorithm_widget) == Qt.DockWidgetArea.NoDockWidgetArea:
-            new_area = Qt.DockWidgetArea.LeftDockWidgetArea
-
-        self.main_window.removeDockWidget(self.selected_algorithm_widget)
-        self.main_window.addDockWidget(new_area, dock)
-
-        self.selected_algorithm_widget = dock
+        self.main_window.setMinimumSize(widget.minimumSize())
+        self.main_window.setCentralWidget(widget)
