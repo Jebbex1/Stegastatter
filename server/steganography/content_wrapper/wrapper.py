@@ -9,6 +9,7 @@ from server.steganography.steganography_errors import ContentWrapperError
 
 """
 Every parameter but the key has a constant length due to its' algorithms restraints:
+- algorithm: 1 byte
 - ecc_block_size: 1 byte (0 <= ecc_block_size <= 255).
 - ecc_symbol_num: 1 byte (0 < ecc_symbol_num < ecc_block_size).
 - verification_tag: 16 bytes (hardcoded into aes encryption algorithm).

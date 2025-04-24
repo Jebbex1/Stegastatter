@@ -28,6 +28,18 @@ def count_accepted_blocks(vessel_blocks: np.ndarray, image_shape: tuple[int, int
     return noise_blocks_num
 
 
+def collect_accepted_blocks(vessel_blocks: np.ndarray, image_shape: tuple[int, int, int, int],
+                            block_shape: tuple[int, int], alpha: float):
+    bit_plane_dims = compute_all_block_indices(image_shape, block_shape)
+
+    accepted_blocks = set()
+    for bit_plane in bit_plane_dims:
+        block = vessel_blocks[tuple(bit_plane)]  # get the current block to handle
+        if calc_bpcs_complexity_coefficient(block) >= alpha:
+            accepted_blocks.add(tuple(bit_plane))
+    return accepted_blocks
+
+
 def calculate_embedding_blocks_num(accepted_blocks_num: int, block_shape: tuple[int, int], alpha: float,
                                    message_bit_length: int) -> int:
     """
@@ -39,7 +51,7 @@ def calculate_embedding_blocks_num(accepted_blocks_num: int, block_shape: tuple[
     :return: the number of total block length of the embedding payload
     """
     block_area = block_shape[0] * block_shape[1]
-    bits_per_prefixed_block = block_area - math.ceil(alpha * block_area)
+    bits_per_prefixed_block = block_area - math.ceil(1.625 * alpha * block_area)
 
     iv_bit_length = len(bin(accepted_blocks_num)[2:]) + len(bin(block_area)[2:])
     conjugation_map_bit_length = math.ceil(message_bit_length / block_area)

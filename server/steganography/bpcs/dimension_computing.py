@@ -29,7 +29,7 @@ def compute_all_block_indices(image_shape: tuple[int, int, int, int],
     :param image_shape: an array describing the image to compute all grid dimensions from
     :param block_shape: a tuple of two integers representing the size of each bit plane
     :return: A generator in which every item is in the form of:
-    slice(x_start, x_end, None), slice(y_start, y_end, None), channel_num, bit_plane_index
+     slice(x_start, x_end, None), slice(y_start, y_end, None), channel_num, bit_plane_index
     :raises BPCSError: if given an image object with an incorrect shape
     """
     update_logger = multiprocessing.get_logger()
