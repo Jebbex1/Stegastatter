@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>status_log</class>
+ <widget class="QTextEdit" name="status_log">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>168</width>
+    <height>64</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>128</width>
+    <height>64</height>
+   </size>
+  </property>
+  <property name="readOnly">
+   <bool>true</bool>
+  </property>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

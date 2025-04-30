@@ -97,7 +97,7 @@ CODES: dict[str, tuple[str, list[str]]] = {
             []),
 
     # 5xx: Protocol and non-side specific errors (allways followed by disconnecting)
-    "500": ("Normal disconnect",
+    "500": ("Disconnect notification",
             [
                 "reason",
             ]),

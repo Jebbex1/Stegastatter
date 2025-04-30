@@ -10,6 +10,9 @@ def pad(content: bytes, ecc_block_size: int, ecc_symbol_num: int) -> bytes:
     :return: the padded content
     :raises ReedSolomonError: if the function was fed invalid parameters
     """
+    if ecc_symbol_num == 0:
+        return content
+
     if ecc_block_size > 255:
         # According to the reedsolo docs, if the block size is larger than 255, complexity and computational cost goes
         # up quadratically. So we limit the maximum block size to be 255.
@@ -30,6 +33,9 @@ def unpad(padded: bytes, block_size: int, ecc_symbol_num: int) -> bytes:
     :raises ReedSolomonError: if the function was fed invalid parameters, or the data had too many errors for the rs
     algorithm to fix.
     """
+    if ecc_symbol_num == 0:
+        return padded
+
     if block_size > 255:
         # According to the reedsolo docs, if the block size is larger than 255, complexity and computational cost goes
         # up quadratically. So we limit the maximum block size to be 255.

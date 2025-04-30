@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Callable
 
 from PySide6.QtWidgets import QPushButton
@@ -7,7 +8,7 @@ from client.gui.ui_loader import load_ui
 
 def generate_custom_button(button_title: str, button_trigger: Callable):
     button = QPushButton(button_title)
-    button.clicked.connect(button_trigger)
+    button.clicked.connect(partial(button_trigger, button))
     return button
 
 

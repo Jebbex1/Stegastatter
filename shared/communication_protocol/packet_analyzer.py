@@ -79,7 +79,7 @@ class PacketInfo:
         (self.code, self.desc), self.headers, self.body = parse_packet_bytes(packet)
         self.raw_packet = packet
         if not is_consistent_packet(self):
-            raise PacketContentsError("Packet contents are not consistent with the packets code")
+            raise PacketContentsError(f"Packet contents are not consistent with the packets code: {packet}")
 
     def verify_code(self, expected: str) -> None:
         if self.code != expected:

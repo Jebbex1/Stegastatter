@@ -86,15 +86,7 @@
       <addaction name="action_capacity_max_calculation_lsb"/>
       <addaction name="action_capacity_max_calculation_bpcs"/>
      </widget>
-     <widget class="QMenu" name="menu_capacity_can_fit">
-      <property name="title">
-       <string>Check if a file can fit into an image</string>
-      </property>
-      <addaction name="action_capacity_can_fit_lsb"/>
-      <addaction name="action_capacity_can_fit_bpcs"/>
-     </widget>
      <addaction name="menu_capacity_max_calculation"/>
-     <addaction name="menu_capacity_can_fit"/>
     </widget>
     <addaction name="menu_encode"/>
     <addaction name="action_decode_generic"/>
@@ -109,20 +101,6 @@
    </widget>
    <addaction name="menu_steganography"/>
    <addaction name="menu_steganalysis"/>
-  </widget>
-  <widget class="QStatusBar" name="status_bar">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-     <stylestrategy>PreferAntialias</stylestrategy>
-    </font>
-   </property>
-   <property name="cursor">
-    <cursorShape>ArrowCursor</cursorShape>
-   </property>
   </widget>
   <action name="action_decode_generic">
    <property name="text">
