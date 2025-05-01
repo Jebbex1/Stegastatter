@@ -100,7 +100,7 @@ class ClientHandler:
         else:
             self.console_logger.info(f"Communication completed successfully with client {self.name}, "
                                      f"closing the connection, and terminating client handler thread")
-            self.disconnect(build_packet("500", {"reason": "end of communication"}))
+            self.disconnect(build_packet("500", {"reason": "End of communication."}))
         finally:
             self.console_logger.info(f"Finished handling client {self.name}")
             self.is_alive = False
