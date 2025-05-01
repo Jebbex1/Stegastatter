@@ -33,15 +33,12 @@ def notify_connection_termination(skt: socket.socket) -> None:
     send_packet(skt, disconnect_packet)
 
 
-def log_end_of_thread():
-    status_logger = multiprocessing.get_logger()
-    status_logger.info("Connection with server terminated.")
-
-
 class ClientConnection:
     def __init__(self, server_ip: str, thread_lock: threading.Lock):
         self.server_ip = server_ip
         self.thread_lock = thread_lock
+        self.skt: socket.socket | None = None
+        self.running = True
 
     def synced_thread_recv_packet(self, skt: socket.socket) -> PacketInfo:
         if self.thread_lock.locked():
@@ -49,14 +46,30 @@ class ClientConnection:
             skt.close()
             exit(0)
 
-        return recv_packet(skt)
+        try:
+            return recv_packet(skt)
+        except TimeoutError:
+            notify_connection_termination(skt)
+            skt.close()
+            exit(0)
+
+    def initiate_terminatation_protocol(self):
+        self.thread_lock.acquire()
+        if self.skt is not None and self.running:
+            self.skt.settimeout(0.001)
+
+    def end_of_thread(self):
+        self.running = False
+        status_logger = multiprocessing.get_logger()
+        status_logger.info("Connection with server terminated.")
+        status_logger.log(logging.NOTSET, "done")
 
     def initiate_bpcs_encoding_request(self, vessel_image_path: str, image_output_path: str, message_file_path: str,
                                        token_output_path: str, encryption_key: str, ecc_block_size: int,
                                        ecc_symbol_size: int, alpha: float) -> None:
         status_logger = multiprocessing.get_logger()
         try:
-            tls_socket = new_server_connection(self.server_ip)
+            self.skt = new_server_connection(self.server_ip)
             params_dict = {
                 "encryption-key": encryption_key,
                 "ecc-block-size": str(ecc_block_size),
@@ -69,11 +82,11 @@ class ClientConnection:
             request_packet = build_packet("100", headers=params_dict, body=vessel_image_bytes)
             message_packet = build_packet("000", body=open(message_file_path, "rb").read())
 
-            send_packet(tls_socket, request_packet)
-            send_packet(tls_socket, message_packet)
+            send_packet(self.skt, request_packet)
+            send_packet(self.skt, message_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(tls_socket)
+                packet = self.synced_thread_recv_packet(self.skt)
 
                 match packet.code:
                     case "000":
@@ -94,9 +107,9 @@ class ClientConnection:
                             status_logger.info(f"An error occurred: {get_dissconnect_packet_line(packet)}")
                             break
             status_logger.info(f"Disconnecting from server...")
-            tls_socket.close()
+            self.skt.close()
 
-            log_end_of_thread()
+            self.end_of_thread()
 
         except ConnectionError:
             status_logger.info("Server closed connection unexpectedly.")
@@ -108,7 +121,7 @@ class ClientConnection:
                                       ecc_symbol_size: int, num_of_sacrificed_bits: int) -> None:
         status_logger = multiprocessing.get_logger()
         try:
-            tls_socket = new_server_connection(self.server_ip)
+            self.skt = new_server_connection(self.server_ip)
             params_dict = {
                 "encryption-key": encryption_key,
                 "ecc-block-size": str(ecc_block_size),
@@ -121,11 +134,11 @@ class ClientConnection:
             request_packet = build_packet("101", headers=params_dict, body=vessel_image_bytes)
             message_packet = build_packet("000", body=open(message_file_path, "rb").read())
 
-            send_packet(tls_socket, request_packet)
-            send_packet(tls_socket, message_packet)
+            send_packet(self.skt, request_packet)
+            send_packet(self.skt, message_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(tls_socket)
+                packet = self.synced_thread_recv_packet(self.skt)
 
                 match packet.code:
                     case "000":
@@ -147,9 +160,9 @@ class ClientConnection:
                             break
 
             status_logger.info(f"Disconnecting from server...")
-            tls_socket.close()
+            self.skt.close()
 
-            log_end_of_thread()
+            self.end_of_thread()
 
         except ConnectionError:
             status_logger.info("Server closed connection unexpectedly.")
@@ -159,18 +172,18 @@ class ClientConnection:
     def initiate_decoding_request(self, stegged_image_path: str, message_output_path: str, token_path: str) -> None:
         status_logger = multiprocessing.get_logger()
         try:
-            tls_socket = new_server_connection(self.server_ip)
+            self.skt = new_server_connection(self.server_ip)
             stegged_image_bytes = get_image_bytes(stegged_image_path)
             token_bytes = open(token_path, "rb").read()
 
             request_packet = build_packet("120", body=stegged_image_bytes)
             token_packet = build_packet("000", body=token_bytes)
 
-            send_packet(tls_socket, request_packet)
-            send_packet(tls_socket, token_packet)
+            send_packet(self.skt, request_packet)
+            send_packet(self.skt, token_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(tls_socket)
+                packet = self.synced_thread_recv_packet(self.skt)
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted decoding request!")
@@ -188,9 +201,9 @@ class ClientConnection:
                             break
 
             status_logger.info(f"Disconnecting from server...")
-            tls_socket.close()
+            self.skt.close()
 
-            log_end_of_thread()
+            self.end_of_thread()
 
         except ConnectionError:
             status_logger.info("Server closed connection unexpectedly.")
@@ -201,7 +214,7 @@ class ClientConnection:
                                            ecc_symbol_num: int, min_alpha: float) -> None:
         status_logger = multiprocessing.get_logger()
         try:
-            tls_socket = new_server_connection(self.server_ip)
+            self.skt = new_server_connection(self.server_ip)
 
             image_bytes = get_image_bytes(image_path)
 
@@ -212,10 +225,10 @@ class ClientConnection:
             }
             request_packet = build_packet("140", headers=headers, body=image_bytes)
 
-            send_packet(tls_socket, request_packet)
+            send_packet(self.skt, request_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(tls_socket)
+                packet = self.synced_thread_recv_packet(self.skt)
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted BPCS capacity check request!")
@@ -237,9 +250,9 @@ class ClientConnection:
                             break
 
             status_logger.info(f"Disconnecting from server...")
-            tls_socket.close()
+            self.skt.close()
 
-            log_end_of_thread()
+            self.end_of_thread()
 
         except ConnectionError:
             status_logger.info("Server closed connection unexpectedly.")
@@ -250,7 +263,7 @@ class ClientConnection:
                                           num_of_sacrificed_bits: int) -> None:
         status_logger = multiprocessing.get_logger()
         try:
-            tls_socket = new_server_connection(self.server_ip)
+            self.skt = new_server_connection(self.server_ip)
 
             image_bytes = get_image_bytes(image_path)
 
@@ -261,10 +274,10 @@ class ClientConnection:
             }
             request_packet = build_packet("141", headers=headers, body=image_bytes)
 
-            send_packet(tls_socket, request_packet)
+            send_packet(self.skt, request_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(tls_socket)
+                packet = self.synced_thread_recv_packet(self.skt)
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted LSB capacity check request!")
@@ -286,9 +299,9 @@ class ClientConnection:
                             break
 
             status_logger.info(f"Disconnecting from server...")
-            tls_socket.close()
+            self.skt.close()
 
-            log_end_of_thread()
+            self.end_of_thread()
 
         except ConnectionError:
             status_logger.info("Server closed connection unexpectedly.")
@@ -298,16 +311,16 @@ class ClientConnection:
     def initiate_bitplane_slicing_request(self, image_path: str, output_directory_path: str) -> None:
         status_logger = multiprocessing.get_logger()
         try:
-            tls_socket = new_server_connection(self.server_ip)
+            self.skt = new_server_connection(self.server_ip)
 
             os.makedirs(output_directory_path, exist_ok=True)
             image_bytes = get_image_bytes(image_path)
 
             request_packet = build_packet("160", body=image_bytes)
-            send_packet(tls_socket, request_packet)
+            send_packet(self.skt, request_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(tls_socket)
+                packet = self.synced_thread_recv_packet(self.skt)
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted BPCS capacity check request!")
@@ -325,20 +338,20 @@ class ClientConnection:
                             break
 
             status_logger.info(f"Disconnecting from server...")
-            tls_socket.close()
+            self.skt.close()
 
-            log_end_of_thread()
+            self.end_of_thread()
 
         except ConnectionError:
             status_logger.info("Server closed connection unexpectedly.")
         except ssl.SSLError as e:
             status_logger.info(f"There was en error regarding the TLS connection {e}")
 
-    def initiate_image_diff_calculation_request(self, image1_path: str, image2_path: str,
-                                                exact_diff: bool, diff_image_path: str) -> None:
+    def initiate_image_diff_request(self, image1_path: str, image2_path: str,
+                                    exact_diff: bool, diff_image_path: str) -> None:
         status_logger = multiprocessing.get_logger()
         try:
-            tls_socket = new_server_connection(self.server_ip)
+            self.skt = new_server_connection(self.server_ip)
 
             image1_bytes = get_image_bytes(image1_path)
             image2_bytes = get_image_bytes(image2_path)
@@ -346,11 +359,11 @@ class ClientConnection:
             request_packet = build_packet("161", headers={"show-exact-diff": str(int(exact_diff))}, body=image1_bytes)
             second_image_packet = build_packet("000", body=image2_bytes)
 
-            send_packet(tls_socket, request_packet)
-            send_packet(tls_socket, second_image_packet)
+            send_packet(self.skt, request_packet)
+            send_packet(self.skt, second_image_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(tls_socket)
+                packet = self.synced_thread_recv_packet(self.skt)
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted image difference calculation request!")
@@ -370,9 +383,9 @@ class ClientConnection:
                             status_logger.info(f"An error occurred: {get_dissconnect_packet_line(packet)}")
                             break
             status_logger.info(f"Disconnecting from server...")
-            tls_socket.close()
+            self.skt.close()
 
-            log_end_of_thread()
+            self.end_of_thread()
 
         except ConnectionError:
             status_logger.info("Server closed connection unexpectedly.")

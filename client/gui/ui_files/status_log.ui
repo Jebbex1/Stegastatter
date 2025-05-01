@@ -16,6 +16,9 @@
     <height>64</height>
    </size>
   </property>
+  <property name="undoRedoEnabled">
+   <bool>false</bool>
+  </property>
   <property name="readOnly">
    <bool>true</bool>
   </property>

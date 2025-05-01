@@ -5,7 +5,7 @@ from enum import IntEnum
 
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QMainWindow, QPushButton, QFormLayout, QLayoutItem, \
-    QStatusBar, QLabel, QTextEdit
+    QStatusBar, QLabel, QTextEdit, QCheckBox
 
 from client.client_connection import ClientConnection
 from client.gui.gui_errors import MissingParameters, InvalidParameters
@@ -29,6 +29,8 @@ TOKEN_OUTPUT_FILE_LABEL = "Select Token Output File"
 USED_BUTTON_COLOR = "#3535A3"
 NORMAL_TEXT_COLOR = "#FFFFFF"
 WARNING_TEXT_COLOR = "#C72D2D"
+
+SERVER_ADDRESS = "127.0.0.1"
 
 
 class AlgorithmProfiles(IntEnum):
@@ -63,7 +65,7 @@ class StegastatterApplication:
         self.selected_algorithm_profile = 0
 
         self.main_window: QMainWindow = load_ui("client/gui/ui_files/main_window.ui")
-        self.start_button = None
+        self.start_button: QPushButton | None = None
 
         self.status_logs: QTextEdit | None = None
 
@@ -72,8 +74,7 @@ class StegastatterApplication:
 
         self.main_window.show()
 
-        self.thread_lock = threading.Lock()
-        self.client_connection = ClientConnection(server_ip, self.thread_lock)
+        self.client_connection: ClientConnection | None = None
         self.communication_thread: threading.Thread | None = None
 
     def reset_selected_paths(self):
@@ -113,6 +114,9 @@ class StegastatterApplication:
             case "WARN" | "WARNING":
                 red_text = f"<span style=\" color:{WARNING_TEXT_COLOR};\" >{record.getMessage()}</span>"
                 self.status_logs.append(red_text)
+            case _:
+                print(record.levelname)
+                self.start_button.setChecked(False)
 
         self.status_logs.moveCursor(QTextCursor.MoveOperation.End)
         return True
@@ -122,6 +126,37 @@ class StegastatterApplication:
             multiprocessing.get_logger().warn(f"Path '{path}' is already selected, please select another one.")
             return True
         return False
+
+    def start_button_clicked(self, checked: bool):
+        if checked:
+            self.status_logs.clear()
+            self.start_button.setText("Stop")
+            self.initiate_steganography_action()
+        else:
+            self.client_connection.initiate_terminatation_protocol()
+            self.start_button.setText("Start")
+
+    def initiate_steganography_action(self):
+        self.client_connection = ClientConnection(SERVER_ADDRESS, threading.Lock())
+        try:
+            match self.selected_algorithm_profile:
+                case AlgorithmProfiles.LSB_ENCODE:
+                    self.start_lsb_encode()
+                case AlgorithmProfiles.BPCS_ENCODE:
+                    self.start_bpcs_encode()
+                case AlgorithmProfiles.GENERIC_DECODE:
+                    self.start_generic_decode()
+                case AlgorithmProfiles.LSB_MAX_CAPACITY:
+                    self.start_lsb_max_capacity()
+                case AlgorithmProfiles.BPCS_MAX_CAPACITY:
+                    self.start_bpcs_max_capacity()
+                case AlgorithmProfiles.BIT_PLANE_SLICING:
+                    self.start_bit_plane_slicing()
+                case AlgorithmProfiles.IMAGE_DIFF:
+                    self.start_image_diff()
+
+        except (InvalidParameters, MissingParameters) as e:
+            multiprocessing.get_logger().warn(e.__str__())
 
     def prompt_get_vessel_input_path(self, button: QPushButton):
         self.selected_paths_set.discard(self.selected_vessel_input_path)
@@ -348,6 +383,9 @@ class StegastatterApplication:
         layout.addWidget(generate_custom_button("Select 2nd Image Input File", self.prompt_get_image_diff_input_2_path))
         layout.addWidget(generate_custom_button("Select Image Diffrence Output File",
                                                 self.prompt_get_image_diff_output_path))
+        checkbox = QCheckBox("Show exact difference")
+        checkbox.setChecked(True)
+        layout.addWidget(checkbox)
 
         return widget
 
@@ -408,14 +446,6 @@ class StegastatterApplication:
         self.main_window.setMinimumSize(widget.minimumSize())
         self.main_window.setCentralWidget(widget)
 
-    def start_button_clicked(self, checked: bool):
-        if checked:
-            if self.client_connection.thread_lock.locked():
-                self.client_connection.thread_lock.release()
-            self.initiate_steganography_action()
-        else:
-            self.client_connection.thread_lock.acquire()
-
     def get_central_widget_item_at(self, index: int):
         return self.main_window.centralWidget().layout().itemAt(index)
 
@@ -435,27 +465,6 @@ class StegastatterApplication:
         encryption_key = self.get_encryption_key_at(4)
         block_size, symbol_num = self.get_ecc_params_at(6)
         return encryption_key, block_size, symbol_num
-
-    def initiate_steganography_action(self):
-        try:
-            match self.selected_algorithm_profile:
-                case AlgorithmProfiles.LSB_ENCODE:
-                    self.start_lsb_encode()
-                case AlgorithmProfiles.BPCS_ENCODE:
-                    self.start_bpcs_encode()
-                case AlgorithmProfiles.GENERIC_DECODE:
-                    self.start_generic_decode()
-                case AlgorithmProfiles.LSB_MAX_CAPACITY:
-                    self.start_lsb_max_capacity()
-                case AlgorithmProfiles.BPCS_MAX_CAPACITY:
-                    self.start_bpcs_max_capacity()
-                case AlgorithmProfiles.BIT_PLANE_SLICING:
-                    self.start_bit_plane_slicing()
-                case AlgorithmProfiles.IMAGE_DIFF:
-                    self.start_image_diff()
-
-        except (InvalidParameters, MissingParameters) as e:
-            multiprocessing.get_logger().warn(e.__str__())
 
     def validate_encode_paths(self):
         if self.selected_vessel_input_path is None:
@@ -574,8 +583,26 @@ class StegastatterApplication:
         symbol_num = int(symbol_num)
         min_alpha = float(min_alpha)
 
+        self.communication_thread = threading.Thread(target=self.client_connection.initiate_bpcs_max_capacity_request,
+                                                     args=(self.selected_vessel_input_path,
+                                                           block_size, symbol_num, min_alpha))
+        self.communication_thread.start()
+
     def start_bit_plane_slicing(self):
         self.validate_bit_plane_slicing_paths()
 
+        self.communication_thread = threading.Thread(target=self.client_connection.initiate_bitplane_slicing_request,
+                                                     args=(self.selected_vessel_input_path,
+                                                           self.selected_bit_plane_slicing_output_folder_path))
+        self.communication_thread.start()
+
     def start_image_diff(self):
         self.validate_image_diff_paths()
+        exact_diff = self.get_central_widget_item_at(3).widget().isChecked()
+
+        self.communication_thread = threading.Thread(target=self.client_connection.initiate_image_diff_request,
+                                                     args=(self.selected_image_diff_input_1,
+                                                           self.selected_image_diff_input_2, exact_diff,
+                                                           self.selected_image_diff_output_path))
+        self.communication_thread.start()
+
