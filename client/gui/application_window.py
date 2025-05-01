@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QMainWindow, QP
 from client.client_connection import ClientConnection
 from client.gui.gui_errors import MissingParameters, InvalidParameters
 from client.gui.steg_params_validator import validate_lsb_params, validate_bpcs_params, validate_ecc_params
+from client.gui.textedit_logger import LoggerOperationsHandler
 from client.gui.ui_wigdet_generator import generate_custom_button, generate_encryption_key_field_widget, \
     generate_lsb_params_widget, generate_bpcs_params_widget, generate_ecc_params_widget
 from client.gui.ui_loader import load_ui
@@ -48,7 +49,7 @@ def get_form_field_text(form_widget: QLayoutItem) -> str:
 
 
 class StegastatterApplication:
-    def __init__(self, server_ip: str):
+    def __init__(self):
         super().__init__()
         self.selected_paths_set = set()
         self.selected_vessel_input_path = None
@@ -65,17 +66,36 @@ class StegastatterApplication:
         self.selected_algorithm_profile = 0
 
         self.main_window: QMainWindow = load_ui("client/gui/ui_files/main_window.ui")
-        self.start_button: QPushButton | None = None
+        self.start_button: QPushButton = self.create_linked_start_button()
 
-        self.status_logs: QTextEdit | None = None
+        self.status_logs: QTextEdit = load_ui("client/gui/ui_files/status_log.ui")
+
+        status_logger = multiprocessing.get_logger()
+        status_logger.setLevel(logging.DEBUG)
+        self.handler = LoggerOperationsHandler(self.status_logs, self.start_button)
+
+        status_logger.addHandler(self.handler)
+        status_logger.addFilter(self.update)
 
         self.connect_actions()
-        self.init_status_logger()
-
         self.main_window.show()
 
         self.client_connection: ClientConnection | None = None
         self.communication_thread: threading.Thread | None = None
+
+    def update(self, record: logging.LogRecord):
+        match record.levelname:
+            case "INFO":
+                white_text = f"<span style=\" color:{NORMAL_TEXT_COLOR};\" >{record.getMessage()}</span>"
+                self.handler.bridge.log.emit(white_text)
+            case "WARN" | "WARNING":
+                red_text = f"<span style=\" color:{WARNING_TEXT_COLOR};\" >{record.getMessage()}</span>"
+                self.handler.bridge.log.emit(red_text)
+            case "DEBUG":
+                self.handler.bridge.toggle_button.emit(False)
+
+        self.handler.bridge.move.emit(QTextCursor.MoveOperation.End)
+        return True
 
     def reset_selected_paths(self):
         self.selected_paths_set = set()
@@ -100,30 +120,9 @@ class StegastatterApplication:
         self.main_window.action_slice_image_bit_planes.triggered.connect(self.use_bit_plane_slicing_widget)
         self.main_window.action_get_diff.triggered.connect(self.use_image_diff_widget)
 
-    def init_status_logger(self):
-        status_logger = multiprocessing.get_logger()
-        status_logger.setLevel(logging.INFO)
-        status_logger.addHandler(logging.NullHandler())
-        status_logger.addFilter(self.show_status)
-
-    def show_status(self, record: logging.LogRecord) -> bool:
-        match record.levelname:
-            case "INFO":
-                white_text = f"<span style=\" color:{NORMAL_TEXT_COLOR};\" >{record.getMessage()}</span>"
-                self.status_logs.append(white_text)
-            case "WARN" | "WARNING":
-                red_text = f"<span style=\" color:{WARNING_TEXT_COLOR};\" >{record.getMessage()}</span>"
-                self.status_logs.append(red_text)
-            case _:
-                print(record.levelname)
-                self.start_button.setChecked(False)
-
-        self.status_logs.moveCursor(QTextCursor.MoveOperation.End)
-        return True
-
     def is_used_path(self, path: str) -> bool:
         if path in self.selected_paths_set:
-            multiprocessing.get_logger().warn(f"Path '{path}' is already selected, please select another one.")
+            multiprocessing.get_logger().warning(f"Path '{path}' is already selected, please select another one.")
             return True
         return False
 
@@ -157,6 +156,21 @@ class StegastatterApplication:
 
         except (InvalidParameters, MissingParameters) as e:
             multiprocessing.get_logger().warn(e.__str__())
+
+    def update_menu_widget(self, widget: QWidget):
+        self.reset_selected_paths()
+        widget.layout().addStretch()
+
+        self.start_button.setChecked(False)
+        widget.layout().addWidget(self.start_button)
+
+        self.status_logs.clear()
+        widget.layout().addWidget(self.status_logs)
+
+        self.communication_thread = None
+
+        self.main_window.setMinimumSize(widget.minimumSize())
+        self.main_window.setCentralWidget(widget)
 
     def prompt_get_vessel_input_path(self, button: QPushButton):
         self.selected_paths_set.discard(self.selected_vessel_input_path)
@@ -354,9 +368,9 @@ class StegastatterApplication:
         layout.addWidget(generate_custom_button(VESSEL_IMAGE_INPUT_LABEL, self.prompt_get_vessel_input_path))
 
         match self.selected_algorithm_profile:
-            case AlgorithmProfiles.LSB_MAX_CAPACITY | AlgorithmProfiles.LSB_CHECK_IF_FITS:
+            case AlgorithmProfiles.LSB_MAX_CAPACITY:
                 layout.addWidget(generate_lsb_params_widget())
-            case AlgorithmProfiles.BPCS_MAX_CAPACITY | AlgorithmProfiles.BPCS_CHECK_IF_FITS:
+            case AlgorithmProfiles.BPCS_MAX_CAPACITY:
                 layout.addWidget(generate_bpcs_params_widget())
 
         layout.addWidget(generate_ecc_params_widget())
@@ -431,21 +445,6 @@ class StegastatterApplication:
         widget = self.create_linked_image_diff_widget()
         self.update_menu_widget(widget)
 
-    def update_menu_widget(self, widget: QWidget):
-        self.reset_selected_paths()
-        widget.layout().addStretch()
-
-        self.start_button = self.create_linked_start_button()
-        widget.layout().addWidget(self.start_button)
-
-        self.status_logs = load_ui("client/gui/ui_files/status_log.ui")
-        widget.layout().addWidget(self.status_logs)
-
-        self.communication_thread = None
-
-        self.main_window.setMinimumSize(widget.minimumSize())
-        self.main_window.setCentralWidget(widget)
-
     def get_central_widget_item_at(self, index: int):
         return self.main_window.centralWidget().layout().itemAt(index)
 
@@ -496,7 +495,7 @@ class StegastatterApplication:
     def validate_bit_plane_slicing_paths(self):
         if self.selected_vessel_input_path is None:
             raise MissingParameters("An image input path is required.")
-        if self.selected_bit_plane_slicing_output_folder_path is not None:
+        if self.selected_bit_plane_slicing_output_folder_path is None:
             raise MissingParameters("A sliced bit planes output folder path is required.")
 
     def validate_image_diff_paths(self):
