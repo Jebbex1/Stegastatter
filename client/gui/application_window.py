@@ -71,8 +71,8 @@ class StegastatterApplication:
         self.status_logs: QTextEdit = load_ui("client/gui/ui_files/status_log.ui")
 
         status_logger = multiprocessing.get_logger()
-        status_logger.setLevel(logging.INFO)
-        self.handler = LoggerOperationsHandler(self.status_logs)
+        status_logger.setLevel(logging.DEBUG)
+        self.handler = LoggerOperationsHandler(self.status_logs, self.start_button)
 
         status_logger.addHandler(self.handler)
         status_logger.addFilter(self.update)
@@ -91,6 +91,8 @@ class StegastatterApplication:
             case "WARN" | "WARNING":
                 red_text = f"<span style=\" color:{WARNING_TEXT_COLOR};\" >{record.getMessage()}</span>"
                 self.handler.bridge.log.emit(red_text)
+            case "DEBUG":
+                self.handler.bridge.toggle_button.emit(False)
 
         self.handler.bridge.move.emit(QTextCursor.MoveOperation.End)
         return True

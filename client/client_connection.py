@@ -62,7 +62,7 @@ class ClientConnection:
         self.running = False
         status_logger = multiprocessing.get_logger()
         status_logger.info("Connection with server terminated.")
-        status_logger.log(logging.NOTSET, "done")
+        status_logger.log(logging.DEBUG, "done")
 
     def initiate_bpcs_encoding_request(self, vessel_image_path: str, image_output_path: str, message_file_path: str,
                                        token_output_path: str, encryption_key: str, ecc_block_size: int,
