@@ -12,10 +12,23 @@ SERVER_CSR = "server/certificate/cert.csr"
 EXTFILE = "server/certificate/extfile.cnf"
 SERVER_CERT = "server/certificate/cert.pem"
 
+
+def wlan_ip():
+    import subprocess
+    result = subprocess.run('ipconfig', stdout=subprocess.PIPE, text=True).stdout.lower()
+    scan = 0
+    for i in result.split('\n'):
+        if 'wireless lan adapter wi-fi' in i:
+            scan = 1
+        if scan:
+            if 'ipv4' in i:
+                return i.split(':')[1].strip()
+
+
 EXTFILE_CONTENTS = (f"subjectAltName = @alt_names\n\n"
                     f"[alt_names]\n"
                     f"DNS.1 = stegastatter.com\n"
-                    f"IP.1 = {socket.gethostbyname(socket.gethostname())}\n"
+                    f"IP.1 = {wlan_ip()}\n"
                     f"DNS.2 = *.stegastatter.com\n"
                     f"IP.2 = 127.0.0.1\n")
 
@@ -44,5 +57,5 @@ def generate_server_cert():
 
 
 if __name__ == '__main__':
-    generate_ca()
+    # generate_ca()
     generate_server_cert()
