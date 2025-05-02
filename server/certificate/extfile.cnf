@@ -2,6 +2,6 @@ subjectAltName = @alt_names
 
 [alt_names]
 DNS.1 = stegastatter.com
-IP.1 = 192.168.56.1
+IP.1 = 192.168.1.107
 DNS.2 = *.stegastatter.com
 IP.2 = 127.0.0.1
