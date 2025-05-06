@@ -1,76 +1,10 @@
-import logging
-import multiprocessing
 import sys
-import threading
 
-from PySide6.QtWidgets import QApplication, QPushButton
-
-from client.client_connection import ClientConnection
-from client.gui.old.main_window import MainWindow
-
-
-def start():
-    server_address = "127.0.0.1"
-    vessel_image_path = "client/test_assets/big2.png"
-    stegged_image_path = "client/test_assets/out2.png"
-    message_in_path = "client/test_assets/ves1.png"
-    message_out_path = "client/test_assets/image_out.png"
-    exact_diff_image_path = "client/test_assets/exact_diff.png"
-    loose_diff_image_path = "client/test_assets/loose_diff.png"
-    slices_output_dir = "client/test_assets/bitplane_slices"
-    token_path = "client/token.bin"
-    encryption_key = "Hello i am a keyyyyyyyyyyyyyyyyyyYYyyYYy"
-    ecc_block_size = 255
-    ecc_symbol_num = 0
-    lsb_number_of_sacrificed_bits = 4
-    bpcs_min_alpha = 0.3
-
-    client = ClientConnection(server_address, thread_lock=threading.Lock())
-
-    print("Started encoding!")
-    client.initiate_bpcs_encoding_request(vessel_image_path, stegged_image_path,
-                                          message_in_path, token_path, encryption_key,
-                                          ecc_block_size, ecc_symbol_num, bpcs_min_alpha)
-    print("Ended encoding!")
-
-    client.initiate_decoding_request(stegged_image_path, message_out_path, token_path)
-    # open(message_out_path, "wb").write(decoded_data)
-    
-    """initiate_image_diff_calculation_request(server_address, vessel_image_path, stegged_image_path, True,
-                                            exact_diff_image_path)
-
-    initiate_image_diff_calculation_request(server_address, vessel_image_path, stegged_image_path, False,
-                                            loose_diff_image_path)
-
-    initiate_bitplane_slicing_request(server_address, exact_diff_image_path, slices_output_dir)"""
-
-    """a = initiate_bpcs_max_capacity_calculation_request(server_address, vessel_image_path,
-                                                       ecc_block_size, ecc_symbol_num, bpcs_min_alpha)
-
-    b = initiate_lsb_max_capacity_calculation_request(server_address, vessel_image_path,
-                                                      ecc_block_size, ecc_symbol_num, lsb_number_of_sacrificed_bits)
-    print(a)
-    print(b)"""
+from PySide6.QtWidgets import QApplication
+from client.gui.application_window import StegastatterApplication
 
 
 if __name__ == '__main__':
-    text_logger = multiprocessing.get_logger()
-    text_logger.setLevel(logging.INFO)
-    text_logger.addHandler(logging.StreamHandler(sys.stdout))
-    """def start_1():
-        threading.Thread(target=start).start()
-
     app = QApplication(sys.argv)
-
-    window = MainWindow("Test")
-
-    trigger = QPushButton()
-    trigger.clicked.connect(start_1)
-
-    window.setCentralWidget(trigger)
-
-    window.show()
-
-    sys.exit(app.exec())"""
-
-    start()
+    StegastatterApplication()
+    sys.exit(app.exec())
