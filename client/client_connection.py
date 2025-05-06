@@ -28,11 +28,6 @@ def new_server_connection(server_ip: str):
     return skt
 
 
-def notify_connection_termination(skt: socket.socket) -> None:
-    disconnect_packet = build_packet("500", {"reason": "Client closed the program unexpectedly."})
-    send_packet(skt, disconnect_packet)
-
-
 class ClientConnection:
     def __init__(self, server_ip: str, thread_lock: threading.Lock):
         self.server_ip = server_ip
@@ -42,14 +37,23 @@ class ClientConnection:
 
     def synced_thread_recv_packet(self, skt: socket.socket) -> PacketInfo:
         if self.thread_lock.locked():
-            notify_connection_termination(skt)
             skt.close()
             exit(0)
 
         try:
             return recv_packet(skt)
         except TimeoutError:
-            notify_connection_termination(skt)
+            skt.close()
+            exit(0)
+
+    def synced_thread_send_packet(self, skt: socket.socket, packet: bytes) -> None:
+        if self.thread_lock.locked():
+            skt.close()
+            exit(0)
+
+        try:
+            send_packet(skt, packet)
+        except TimeoutError:
             skt.close()
             exit(0)
 
@@ -82,8 +86,8 @@ class ClientConnection:
             request_packet = build_packet("100", headers=params_dict, body=vessel_image_bytes)
             message_packet = build_packet("000", body=open(message_file_path, "rb").read())
 
-            send_packet(self.skt, request_packet)
-            send_packet(self.skt, message_packet)
+            self.synced_thread_send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(self.skt, message_packet)
 
             while True:
                 packet = self.synced_thread_recv_packet(self.skt)
@@ -134,8 +138,8 @@ class ClientConnection:
             request_packet = build_packet("101", headers=params_dict, body=vessel_image_bytes)
             message_packet = build_packet("000", body=open(message_file_path, "rb").read())
 
-            send_packet(self.skt, request_packet)
-            send_packet(self.skt, message_packet)
+            self.synced_thread_send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(self.skt, message_packet)
 
             while True:
                 packet = self.synced_thread_recv_packet(self.skt)
@@ -179,8 +183,8 @@ class ClientConnection:
             request_packet = build_packet("120", body=stegged_image_bytes)
             token_packet = build_packet("000", body=token_bytes)
 
-            send_packet(self.skt, request_packet)
-            send_packet(self.skt, token_packet)
+            self.synced_thread_send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(self.skt, token_packet)
 
             while True:
                 packet = self.synced_thread_recv_packet(self.skt)
@@ -225,7 +229,7 @@ class ClientConnection:
             }
             request_packet = build_packet("140", headers=headers, body=image_bytes)
 
-            send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(self.skt, request_packet)
 
             while True:
                 packet = self.synced_thread_recv_packet(self.skt)
@@ -236,7 +240,7 @@ class ClientConnection:
                         status_logger.info(packet.headers["status"])
                     case "204":
                         max_capacity = int(packet.headers["max-bytes-capacity"])
-                        status_logger.info(f"The selected image has a max capacity of {max_capacity} bytes using BPCS"
+                        status_logger.info(f"The selected image has a max capacity of {max_capacity} bytes using BPCS "
                                            f"steganography with the following parameters:\n"
                                            f"BPCS Minimum Complexity Coefficient: {min_alpha}\n"
                                            f"RSC Block Size: {ecc_block_size}\n"
@@ -274,7 +278,7 @@ class ClientConnection:
             }
             request_packet = build_packet("141", headers=headers, body=image_bytes)
 
-            send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(self.skt, request_packet)
 
             while True:
                 packet = self.synced_thread_recv_packet(self.skt)
@@ -317,7 +321,7 @@ class ClientConnection:
             image_bytes = get_image_bytes(image_path)
 
             request_packet = build_packet("160", body=image_bytes)
-            send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(self.skt, request_packet)
 
             while True:
                 packet = self.synced_thread_recv_packet(self.skt)
@@ -359,8 +363,8 @@ class ClientConnection:
             request_packet = build_packet("161", headers={"show-exact-diff": str(int(exact_diff))}, body=image1_bytes)
             second_image_packet = build_packet("000", body=image2_bytes)
 
-            send_packet(self.skt, request_packet)
-            send_packet(self.skt, second_image_packet)
+            self.synced_thread_send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(self.skt, second_image_packet)
 
             while True:
                 packet = self.synced_thread_recv_packet(self.skt)
