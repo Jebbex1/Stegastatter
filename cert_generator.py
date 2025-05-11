@@ -3,7 +3,6 @@ import re
 import socket
 import subprocess
 import sys
-from urllib.request import urlopen
 
 CA_KEY = "certificate_authority_secrets/ca-key.pem"
 CA_CERT = "shared/certificate_authority/ca-cert.pem"
@@ -13,24 +12,14 @@ EXTFILE = "server/certificate/extfile.cnf"
 SERVER_CERT = "server/certificate/cert.pem"
 
 
-def wlan_ip():
-    import subprocess
-    result = subprocess.run('ipconfig', stdout=subprocess.PIPE, text=True).stdout.lower()
-    scan = 0
-    for i in result.split('\n'):
-        if 'wireless lan adapter wi-fi' in i:
-            scan = 1
-        if scan:
-            if 'ipv4' in i:
-                return i.split(':')[1].strip()
-
-
 EXTFILE_CONTENTS = (f"subjectAltName = @alt_names\n\n"
                     f"[alt_names]\n"
                     f"DNS.1 = stegastatter.com\n"
-                    f"IP.1 = {wlan_ip()}\n"
-                    f"DNS.2 = *.stegastatter.com\n"
-                    f"IP.2 = 127.0.0.1\n")
+                    f"IP.1 = 127.0.0.1\n"
+                    f"IP.2 = 192.168.77.2\n"
+                    f"IP.3 = 192.168.77.3\n"
+                    f"IP.4 = 192.168.77.4\n"
+                    f"IP.5 = 192.168.77.5\n")
 
 
 def generate_ca():
@@ -46,7 +35,7 @@ def generate_ca():
 def generate_server_cert():
     subprocess.run(["openssl", "genrsa", "-out", f"\'{SERVER_CERT_KEY}\'", "4096"],
                    stderr=sys.stdout)
-    subprocess.run(["openssl", "req", "-new", "-sha256", "-subj", "/CN=yourcn", "-key", f"\'{SERVER_CERT_KEY}\'",
+    subprocess.run(["openssl", "req", "-new", "-sha256", "-subj", "/CN=Jebbex", "-key", f"\'{SERVER_CERT_KEY}\'",
                     "-out", f"\'{SERVER_CSR}\'"],
                    stderr=sys.stdout)
     open(EXTFILE, "w").write(EXTFILE_CONTENTS)
@@ -57,5 +46,5 @@ def generate_server_cert():
 
 
 if __name__ == '__main__':
-    # generate_ca()
+    generate_ca()
     generate_server_cert()
