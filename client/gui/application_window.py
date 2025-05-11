@@ -1,14 +1,16 @@
 import logging
 import multiprocessing
+import sys
 import threading
 from enum import IntEnum
 
-from PySide6.QtGui import QTextCursor
+from PySide6.QtCore import QEvent, QObject
+from PySide6.QtGui import QTextCursor, QPixmap, QCloseEvent
 from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QMainWindow, QPushButton, QFormLayout, QLayoutItem, \
-    QStatusBar, QLabel, QTextEdit, QCheckBox
+    QStatusBar, QLabel, QTextEdit, QCheckBox, QApplication
 
 from client.client_connection import ClientConnection
-from client.gui.gui_errors import MissingParameters, InvalidParameters
+from client.gui.gui_errors import MissingParametersError, InvalidParametersError
 from client.gui.steg_params_validator import validate_lsb_params, validate_bpcs_params, validate_ecc_params
 from client.gui.textedit_logger import LoggerOperationsHandler
 from client.gui.ui_wigdet_generator import generate_custom_button, generate_encryption_key_field_widget, \
@@ -66,6 +68,8 @@ class StegastatterApplication:
         self.selected_algorithm_profile = 0
 
         self.main_window: QMainWindow = load_ui("client/gui/ui_files/main_window.ui")
+        self.main_window.setWindowIcon(QPixmap("client/gui/assets/icon64.png"))
+        self.main_window.setWindowTitle("Stegastatter Client")
         self.start_button: QPushButton = self.create_linked_start_button()
 
         self.status_logs: QTextEdit = load_ui("client/gui/ui_files/status_log.ui")
@@ -82,6 +86,10 @@ class StegastatterApplication:
 
         self.client_connection: ClientConnection | None = None
         self.communication_thread: threading.Thread | None = None
+
+    def safe_close(self):
+        if self.client_connection is not None:
+            self.client_connection.initiate_terminatation_protocol()
 
     def update(self, record: logging.LogRecord):
         match record.levelname:
@@ -132,7 +140,8 @@ class StegastatterApplication:
             self.start_button.setText("Stop")
             self.initiate_steganography_action()
         else:
-            self.client_connection.initiate_terminatation_protocol()
+            if self.client_connection is not None:
+                self.client_connection.initiate_terminatation_protocol()
             self.start_button.setText("Start")
 
     def initiate_steganography_action(self):
@@ -154,8 +163,9 @@ class StegastatterApplication:
                 case AlgorithmProfiles.IMAGE_DIFF:
                     self.start_image_diff()
 
-        except (InvalidParameters, MissingParameters) as e:
+        except (InvalidParametersError, MissingParametersError) as e:
             multiprocessing.get_logger().warn(e.__str__())
+            self.client_connection = None
 
     def update_menu_widget(self, widget: QWidget):
         self.reset_selected_paths()
@@ -467,44 +477,44 @@ class StegastatterApplication:
 
     def validate_encode_paths(self):
         if self.selected_vessel_input_path is None:
-            raise MissingParameters("A vessel image input path is required.")
+            raise MissingParametersError("A vessel image input path is required.")
         if self.selected_stegged_output_path is None:
-            raise MissingParameters("A stegged image output path is required.")
+            raise MissingParametersError("A stegged image output path is required.")
         if self.selected_message_input_path is None:
-            raise MissingParameters("A message file input path is required.")
+            raise MissingParametersError("A message file input path is required.")
         if self.selected_token_output_path is None:
-            raise MissingParameters("A token file output path is required.")
+            raise MissingParametersError("A token file output path is required.")
 
     def validate_decode_paths(self):
         if self.selected_stegged_input_path is None:
-            raise MissingParameters("A stegged image input path is required.")
+            raise MissingParametersError("A stegged image input path is required.")
         if self.selected_message_output_path is None:
-            raise MissingParameters("A message file output path is required.")
+            raise MissingParametersError("A message file output path is required.")
         if self.selected_token_input_path is None:
-            raise MissingParameters("A token file input path is required.")
+            raise MissingParametersError("A token file input path is required.")
 
     def validate_max_capacity_paths(self):
         if self.selected_vessel_input_path is None:
-            raise MissingParameters("A vessel image input path is required.")
+            raise MissingParametersError("A vessel image input path is required.")
 
     def validate_check_fits_paths(self):
         self.validate_max_capacity_paths()
         if self.selected_message_input_path is None:
-            raise MissingParameters("A message file input path is required.")
+            raise MissingParametersError("A message file input path is required.")
 
     def validate_bit_plane_slicing_paths(self):
         if self.selected_vessel_input_path is None:
-            raise MissingParameters("An image input path is required.")
+            raise MissingParametersError("An image input path is required.")
         if self.selected_bit_plane_slicing_output_folder_path is None:
-            raise MissingParameters("A sliced bit planes output folder path is required.")
+            raise MissingParametersError("A sliced bit planes output folder path is required.")
 
     def validate_image_diff_paths(self):
         if self.selected_image_diff_input_1 is None:
-            raise MissingParameters("A 1st image input path for image diff is required.")
+            raise MissingParametersError("A 1st image input path for image diff is required.")
         if self.selected_image_diff_input_2 is None:
-            raise MissingParameters("A 2nd image input path for image diff is required.")
+            raise MissingParametersError("A 2nd image input path for image diff is required.")
         if self.selected_image_diff_output_path is None:
-            raise MissingParameters("An image diff output path is required.")
+            raise MissingParametersError("An image diff output path is required.")
 
     def start_lsb_encode(self):
         self.validate_encode_paths()

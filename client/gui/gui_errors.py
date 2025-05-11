@@ -1,7 +1,7 @@
 
-class InvalidParameters(Exception):
+class InvalidParametersError(Exception):
     pass
 
 
-class MissingParameters(Exception):
+class MissingParametersError(Exception):
     pass
