@@ -19,7 +19,7 @@ def slice_rgb_bit_planes(image_bytes: bytes):
         for bit_index in range(0, 8):
             update_logger.info(f"Bit index: {bit_index}")
             slice_name = f"Bitplane {channel}{str(7 - bit_index)}.png"
-            bitplane_slice = Image.new("RGB", image.size)
+            bitplane_slice = Image.new("1", image.size)
             chk_val = int(f"0b{bit_index * "0"}1{((7 - bit_index) * "0")}", 2)
 
             for y in range(c_image.shape[0]):
@@ -28,11 +28,11 @@ def slice_rgb_bit_planes(image_bytes: bytes):
                     if chk_val & src_val > 0:
                         match channel:
                             case "R":
-                                bitplane_slice.putpixel((x, y), (255, 0, 0))
+                                bitplane_slice.putpixel((x, y), 1)
                             case "G":
-                                bitplane_slice.putpixel((x, y), (0, 255, 0))
+                                bitplane_slice.putpixel((x, y), 1)
                             case "B":
-                                bitplane_slice.putpixel((x, y), (0, 0, 255))
+                                bitplane_slice.putpixel((x, y), 1)
 
             image_bytes = io.BytesIO()
             bitplane_slice.save(image_bytes, format="PNG")

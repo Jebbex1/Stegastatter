@@ -194,7 +194,7 @@ class ClientConnection:
                     case "201":
                         status_logger.info(packet.headers["status"])
                     case "203":
-                        status_logger.info("Received BPCS decoded data from server!")
+                        status_logger.info("Received decoded data from server!")
                         open(message_output_path, "wb").write(packet.body)
                     case "500":
                         status_logger.info(get_dissconnect_packet_line(packet))

@@ -1,7 +1,9 @@
 import re
 
-import shared.communication_protocol.packet_structure as structure
+from shared.communication_protocol.packet_structure import CODES, SEP, END, MAX_FILE_SIZE, MAX_FIELD_SIZE, \
+    MAX_TITLE_SIZE
 from shared.communication_protocol.communication_errors import PacketContentsError, PacketStructureError
+from shared.communication_protocol.transmission import CHARSET
 
 HEADER_PATTERN = r"([\w-]+:[\x20-\x7E]+\x1D\x0D)"
 
@@ -36,7 +38,7 @@ def get_packet_code(packet: bytes) -> tuple[str, str]:
     :param packet: the raw packet string
     :return: <packet code>,<packet string>
     """
-    code_parts = packet.split(structure.SEP)[0].split(b":")
+    code_parts = packet.split(SEP)[0].split(b":")
     return code_parts[0].decode(), code_parts[1].decode()
 
 
@@ -46,7 +48,7 @@ def get_headers_dict(packet: bytes) -> dict[str, str]:
     :param packet: the raw packet string
     :return: a dictionary of the packet headers,  dict key -> header name and dict value -> header value
     """
-    header_num = len(structure.CODES[get_packet_code(packet)[0]][1])
+    header_num = len(CODES[get_packet_code(packet)[0]][1])
     header_structure_match = re.findall(HEADER_PATTERN.encode(), packet)[1:header_num+1]
     headers_dict = {}
     for match in header_structure_match:
@@ -58,8 +60,8 @@ def get_headers_dict(packet: bytes) -> dict[str, str]:
 
 
 def get_body(packet: bytes) -> bytes:
-    header_num = len(structure.CODES[get_packet_code(packet)[0]][1])
-    return b"\x1d\x0d".join(packet.split(structure.SEP)[header_num+1:])[:-1]
+    header_num = len(CODES[get_packet_code(packet)[0]][1])
+    return b"\x1d\x0d".join(packet.split(SEP)[header_num+1:])[:-1]
 
 
 def parse_packet_bytes(packet: bytes) -> tuple[tuple[str, str], dict[str, str], bytes]:
@@ -85,6 +87,17 @@ class PacketInfo:
         if self.code != expected:
             raise PacketContentsError(f"Unexpected packet code, expected {expected}, got {self.code}")
 
+    def validate_content_size(self) -> None:
+        if len(self.desc.encode(CHARSET)) > MAX_TITLE_SIZE:
+            raise PacketContentsError(f"Packet title exceeds max size {MAX_TITLE_SIZE}")
+
+        for key, field in self.headers.items():
+            if len(field.encode(CHARSET)) > MAX_FIELD_SIZE:
+                raise PacketContentsError(f"Field of header {key} exceeds max size {MAX_FIELD_SIZE}.")
+
+        if len(self.body) > MAX_FILE_SIZE:
+            raise PacketContentsError(f"Body of packet {len(self.body)} exceeds max size {MAX_FILE_SIZE}.")
+
     def __str__(self) -> str:
         """
         Regular __str__ function
@@ -105,9 +118,9 @@ def is_consistent_packet(packet: PacketInfo) -> bool:
     code, desc = packet.code, packet.desc
     headers = packet.headers
     try:
-        if structure.CODES[code][0] != desc:
+        if CODES[code][0] != desc:
             return False
-        for header_name in structure.CODES[code][1]:
+        for header_name in CODES[code][1]:
             if header_name not in headers.keys():
                 return False
         return True

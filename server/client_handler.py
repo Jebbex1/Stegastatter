@@ -56,10 +56,10 @@ class ClientHandler:
         return self.is_alive
 
     def handle_client(self) -> None:
-        self.socket.settimeout(10)
+        self.socket.settimeout(3)
         try:
             self.wrap_tls()
-            request_packet = recv_packet(self.socket)
+            request_packet = recv_packet(self.socket, True)
             match request_packet.code:
                 case "100": self.handle_bpcs_encoding_request(request_packet)
                 case "101": self.handle_lsb_encoding_request(request_packet)
@@ -110,7 +110,7 @@ class ClientHandler:
         vessel_bytes = request_packet.body
         params_dict = request_packet.headers
 
-        vessel_packet = recv_packet(self.socket)
+        vessel_packet = recv_packet(self.socket, True)
         vessel_packet.verify_code("000")
         message = vessel_packet.body
 
@@ -138,7 +138,7 @@ class ClientHandler:
         vessel_bytes = request_packet.body
         params_dict = request_packet.headers
 
-        vessel_packet = recv_packet(self.socket)
+        vessel_packet = recv_packet(self.socket, True)
         vessel_packet.verify_code("000")
         message = vessel_packet.body
 
@@ -165,7 +165,7 @@ class ClientHandler:
         request_packet.verify_code("120")
         stegged_bytes = request_packet.body
 
-        stegged_packet = recv_packet(self.socket)
+        stegged_packet = recv_packet(self.socket, True)
         stegged_packet.verify_code("000")
         token = stegged_packet.body
 
@@ -243,7 +243,7 @@ class ClientHandler:
         except ValueError as e:
             raise PacketContentsError(f"Packet header types are invalid: {e}")
 
-        image2_packet = recv_packet(self.socket)
+        image2_packet = recv_packet(self.socket, True)
         image2_packet.verify_code("000")
         image2_bytes = image2_packet.body
 

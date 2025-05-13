@@ -2,6 +2,11 @@
 SEP = b"\x1d\x0d"  # protocol seperator: group seperator + carriage return
 END = b"\x04"  # end of packet marker
 
+MAX_TITLE_SIZE = 128  # 128B aka 128 characters
+MAX_FIELD_SIZE = 128  # 128B aka 128 characters
+MAX_FILE_SIZE = int(1.6e7)  # 16MB
+
+
 """
 "CODE": ("DESCRIPTION",
         [

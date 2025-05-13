@@ -1,21 +1,21 @@
 import logging
 import multiprocessing
-import sys
 import threading
 from enum import IntEnum
 
-from PySide6.QtCore import QEvent, QObject
-from PySide6.QtGui import QTextCursor, QPixmap, QCloseEvent
-from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QMainWindow, QPushButton, QFormLayout, QLayoutItem, \
-    QStatusBar, QLabel, QTextEdit, QCheckBox, QApplication
+from PySide6.QtGui import QTextCursor, QPixmap
+from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QMainWindow, QPushButton, QTextEdit, QCheckBox
 
 from client.client_connection import ClientConnection
 from client.gui.gui_errors import MissingParametersError, InvalidParametersError
+from client.gui.gui_utils import get_form_field_text
 from client.gui.steg_params_validator import validate_lsb_params, validate_bpcs_params, validate_ecc_params
 from client.gui.textedit_logger import LoggerOperationsHandler
 from client.gui.ui_wigdet_generator import generate_custom_button, generate_encryption_key_field_widget, \
     generate_lsb_params_widget, generate_bpcs_params_widget, generate_ecc_params_widget
 from client.gui.ui_loader import load_ui
+from shared.communication_protocol.packet_structure import MAX_FIELD_SIZE, MAX_FILE_SIZE
+from shared.communication_protocol.transmission import CHARSET
 
 IMAGE_FILTER = "Image Files (*.png *.bmp)"
 ANY_FILE_FILTER = "All Files (*.*)"
@@ -46,8 +46,10 @@ class AlgorithmProfiles(IntEnum):
     IMAGE_DIFF = 7
 
 
-def get_form_field_text(form_widget: QLayoutItem) -> str:
-    return form_widget.itemAt(0, QFormLayout.ItemRole.FieldRole).widget().text()
+def validate_header_field_length(field: str):
+    if len(field.encode(CHARSET)) > MAX_FIELD_SIZE:
+        raise InvalidParametersError(f"The field content '{field}' is too long. Maximum size "
+                                     f"is {len((b'_' * MAX_FIELD_SIZE).decode(CHARSET))}.")
 
 
 class StegastatterApplication:
@@ -128,11 +130,17 @@ class StegastatterApplication:
         self.main_window.action_slice_image_bit_planes.triggered.connect(self.use_bit_plane_slicing_widget)
         self.main_window.action_get_diff.triggered.connect(self.use_image_diff_widget)
 
-    def is_used_path(self, path: str) -> bool:
+    def is_valid_file_and_path(self, path: str, validate_size: bool):
         if path in self.selected_paths_set:
-            multiprocessing.get_logger().warning(f"Path '{path}' is already selected, please select another one.")
-            return True
-        return False
+            raise InvalidParametersError(f"Path '{path}' is already selected, please select another one.")
+
+        if path == "":
+            raise MissingParametersError(f"A path is empty, please select one.")
+
+        if validate_size:
+            if len(open(path, "rb").read()) > MAX_FILE_SIZE:
+                raise InvalidParametersError(f"File at path '{path}' is to large. Please choose a file that does not "
+                                             f"exceed {MAX_FILE_SIZE} bytes.")
 
     def start_button_clicked(self, checked: bool):
         if checked:
@@ -165,6 +173,7 @@ class StegastatterApplication:
 
         except (InvalidParametersError, MissingParametersError) as e:
             multiprocessing.get_logger().warn(e.__str__())
+            self.start_button.setChecked(False)
             self.client_connection = None
 
     def update_menu_widget(self, widget: QWidget):
@@ -187,7 +196,8 @@ class StegastatterApplication:
         path = QFileDialog.getOpenFileName(self.main_window,
                                            "Select an existing image to use as a Vessel Image",
                                            filter=IMAGE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, True):
             return
 
         self.selected_vessel_input_path = path
@@ -200,7 +210,8 @@ class StegastatterApplication:
         path = QFileDialog.getOpenFileName(self.main_window,
                                            "Select an existing image to extract data from",
                                            filter=IMAGE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, True):
             return
 
         self.selected_stegged_input_path = path
@@ -213,7 +224,8 @@ class StegastatterApplication:
         path = QFileDialog.getSaveFileName(self.main_window,
                                            "Select where to save the Stegged Image",
                                            filter=IMAGE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, False):
             return
 
         self.selected_stegged_output_path = path
@@ -226,7 +238,8 @@ class StegastatterApplication:
         path = QFileDialog.getOpenFileName(self.main_window,
                                            "Select a file to embed into an image",
                                            filter=ANY_FILE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, True):
             return
 
         self.selected_message_input_path = path
@@ -239,7 +252,8 @@ class StegastatterApplication:
         path = QFileDialog.getSaveFileName(self.main_window,
                                            "Select where to save the extracted data",
                                            filter=ANY_FILE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, False):
             return
 
         self.selected_message_output_path = path
@@ -253,7 +267,8 @@ class StegastatterApplication:
                                            "Select the token that contains the extracting algorithm parameters "
                                            "for this image",
                                            filter=BIN_FILE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, True):
             return
 
         self.selected_token_input_path = path
@@ -267,7 +282,8 @@ class StegastatterApplication:
                                            "Select where to save the token that contains all the "
                                            "algorithm parameters",
                                            filter=BIN_FILE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, False):
             return
 
         self.selected_token_output_path = path
@@ -280,7 +296,8 @@ class StegastatterApplication:
         path = QFileDialog.getOpenFileName(self.main_window,
                                            "Select the first image to compare",
                                            filter=IMAGE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, True):
             return
 
         self.selected_image_diff_input_1 = path
@@ -293,7 +310,8 @@ class StegastatterApplication:
         path = QFileDialog.getOpenFileName(self.main_window,
                                            "Select the second image to compare",
                                            filter=IMAGE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, True):
             return
 
         self.selected_image_diff_input_2 = path
@@ -307,7 +325,8 @@ class StegastatterApplication:
                                            "Select where to save the image that contains the diffrence between "
                                            "the provided images",
                                            filter=IMAGE_FILTER)[0]
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, False):
             return
 
         self.selected_image_diff_output_path = path
@@ -320,7 +339,8 @@ class StegastatterApplication:
         path = QFileDialog.getExistingDirectory(self.main_window,
                                                 "Select where to save the sliced bit planes of the "
                                                 "provided image")
-        if self.is_used_path(path) or path == "":
+
+        if not self.is_valid_file_and_path(path, False):
             return
 
         self.selected_bit_plane_slicing_output_folder_path = path
@@ -520,6 +540,12 @@ class StegastatterApplication:
         self.validate_encode_paths()
         encryption_key, block_size, symbol_num = self.get_encoding_params()
         num_of_sacrificed_bits = self.get_form_field_text_at_group_box_at(5, 0)
+
+        validate_header_field_length(encryption_key)
+        validate_header_field_length(block_size)
+        validate_header_field_length(symbol_num)
+        validate_header_field_length(num_of_sacrificed_bits)
+
         validate_lsb_params(num_of_sacrificed_bits)
         validate_ecc_params(block_size, symbol_num)
 
@@ -540,6 +566,12 @@ class StegastatterApplication:
         self.validate_encode_paths()
         encryption_key, block_size, symbol_num = self.get_encoding_params()
         min_alpha = self.get_form_field_text_at_group_box_at(5, 0)
+
+        validate_header_field_length(encryption_key)
+        validate_header_field_length(block_size)
+        validate_header_field_length(symbol_num)
+        validate_header_field_length(min_alpha)
+
         validate_bpcs_params(min_alpha)
         validate_ecc_params(block_size, symbol_num)
 
@@ -569,6 +601,11 @@ class StegastatterApplication:
         self.validate_max_capacity_paths()
         block_size, symbol_num = self.get_ecc_params_at(2)
         num_of_sacrificed_bits = self.get_form_field_text_at_group_box_at(1, 0)
+
+        validate_header_field_length(block_size)
+        validate_header_field_length(symbol_num)
+        validate_header_field_length(num_of_sacrificed_bits)
+
         validate_lsb_params(num_of_sacrificed_bits)
         validate_ecc_params(block_size, symbol_num)
 
@@ -585,6 +622,11 @@ class StegastatterApplication:
         self.validate_max_capacity_paths()
         block_size, symbol_num = self.get_ecc_params_at(2)
         min_alpha = self.get_form_field_text_at_group_box_at(1, 0)
+
+        validate_header_field_length(block_size)
+        validate_header_field_length(symbol_num)
+        validate_header_field_length(min_alpha)
+
         validate_bpcs_params(min_alpha)
         validate_ecc_params(block_size, symbol_num)
 
@@ -614,4 +656,3 @@ class StegastatterApplication:
                                                            self.selected_image_diff_input_2, exact_diff,
                                                            self.selected_image_diff_output_path))
         self.communication_thread.start()
-

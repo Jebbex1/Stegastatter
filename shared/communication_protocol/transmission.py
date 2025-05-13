@@ -9,10 +9,9 @@ LFS = 16  # length field size
 RECV_BUFFER_SIZE = 128000
 
 
-def recv_packet(skt: socket.socket) -> PacketInfo:
+def recv_packet(skt: socket.socket, validate_sizes: bool = False) -> PacketInfo:
     """
     Receives a packet by the transmission protocol, and returns it as a string.
-    :rtype: object
     :param skt: the socket interface that we can use to communicate
     :return: the received packet
     """
@@ -26,7 +25,12 @@ def recv_packet(skt: socket.socket) -> PacketInfo:
     while len(packet) != length:
         packet += skt.recv(min(RECV_BUFFER_SIZE, length - len(packet)))
 
-    return PacketInfo(packet)
+    packet = PacketInfo(packet)
+
+    if validate_sizes:
+        packet.validate_content_size()
+
+    return packet
 
 
 def gen_len_prefix(length: int) -> bytes:

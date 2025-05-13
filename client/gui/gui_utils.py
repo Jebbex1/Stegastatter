@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QLayout
+from PySide6.QtWidgets import QLayout, QLayoutItem, QFormLayout
 
 
 def clear_layout(layout: QLayout):
@@ -13,3 +13,7 @@ def clear_layout(layout: QLayout):
         else:
             clear_layout(item.layout())
     layout.deleteLater()
+
+
+def get_form_field_text(form_widget: QLayoutItem) -> str:
+    return form_widget.itemAt(0, QFormLayout.ItemRole.FieldRole).widget().text()
