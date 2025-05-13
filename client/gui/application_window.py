@@ -14,8 +14,7 @@ from client.gui.textedit_logger import LoggerOperationsHandler
 from client.gui.ui_wigdet_generator import generate_custom_button, generate_encryption_key_field_widget, \
     generate_lsb_params_widget, generate_bpcs_params_widget, generate_ecc_params_widget
 from client.gui.ui_loader import load_ui
-from shared.communication_protocol.packet_structure import MAX_FIELD_SIZE, MAX_FILE_SIZE
-from shared.communication_protocol.transmission import CHARSET
+from shared.communication_protocol.constants import CHARSET, MAX_FIELD_SIZE, MAX_FILE_SIZE
 
 IMAGE_FILTER = "Image Files (*.png *.bmp)"
 ANY_FILE_FILTER = "All Files (*.*)"

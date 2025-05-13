@@ -1,12 +1,8 @@
 import socket as socket
 
 from shared.communication_protocol.communication_errors import TransmissionProtocolError
+from shared.communication_protocol.constants import CHARSET, LFS, RECV_BUFFER_SIZE
 from shared.communication_protocol.packet_analyzer import PacketInfo
-
-PORT = 8374  # shared port
-CHARSET = 'utf-8'
-LFS = 16  # length field size
-RECV_BUFFER_SIZE = 128000
 
 
 def recv_packet(skt: socket.socket, validate_sizes: bool = False) -> PacketInfo:

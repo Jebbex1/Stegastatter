@@ -7,7 +7,7 @@ import sys
 
 
 from server.client_handler import ClientHandler
-from shared.communication_protocol.transmission import PORT
+from shared.communication_protocol.constants import PORT
 from shared.utils import sock_name, save_ssl_context
 
 

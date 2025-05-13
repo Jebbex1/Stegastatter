@@ -6,7 +6,8 @@ import multiprocessing
 import threading
 
 from shared.communication_protocol.packet_analyzer import PacketInfo
-from shared.communication_protocol.transmission import PORT, send_packet, recv_packet
+from shared.communication_protocol.transmission import send_packet, recv_packet
+from shared.communication_protocol.constants import PORT
 from shared.communication_protocol.packet_builder import build_packet
 from shared.utils import get_image_bytes, get_dissconnect_packet_line
 

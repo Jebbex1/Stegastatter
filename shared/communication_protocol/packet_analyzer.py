@@ -1,9 +1,8 @@
 import re
 
-from shared.communication_protocol.packet_structure import CODES, SEP, END, MAX_FILE_SIZE, MAX_FIELD_SIZE, \
-    MAX_TITLE_SIZE
 from shared.communication_protocol.communication_errors import PacketContentsError, PacketStructureError
-from shared.communication_protocol.transmission import CHARSET
+from shared.communication_protocol.constants import CHARSET, SEP, END, MAX_TITLE_SIZE, MAX_FIELD_SIZE, MAX_FILE_SIZE, \
+    CODES
 
 HEADER_PATTERN = r"([\w-]+:[\x20-\x7E]+\x1D\x0D)"
 
