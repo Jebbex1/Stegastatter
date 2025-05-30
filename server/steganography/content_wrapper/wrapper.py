@@ -1,10 +1,12 @@
 import math
 import multiprocessing
+import random
 import struct
 from enum import IntEnum
 
 from server.steganography.content_wrapper.aes_gcm import encrypt, decrypt
 from server.steganography.content_wrapper.reed_solomon import pad, unpad
+from server.steganography.content_wrapper.seeded_shuffler import shuffle_bytes, unshuffle_bytes
 from server.steganography.steganography_errors import ContentWrapperError
 
 """
@@ -15,6 +17,7 @@ Every parameter but the key has a constant length due to its' algorithms restrai
 - verification_tag: 16 bytes (hardcoded into aes encryption algorithm).
 - nonce: 16 bytes (hardcoded into aes encryption algorithm).
 - update_header: 8 bytes (hardcoded into aes encryption algorithm).
+- shuffling seed: 64 bytes (hardcoded into shuffling algorithm).
 - key: this will be concatenated to the end of the token so it will be the remaining bytes.
 
 Algorithm specific parameters:
@@ -35,14 +38,23 @@ class Algorithms(IntEnum):
     BPCS = 2
 
 
-def get_base_data_from_token(token: bytes):
-    algorithm, token = ord(struct.unpack("c", token[:1])[0]), token[1:]
-    ecc_block_size, token = ord(token[:1]), token[1:]
-    ecc_symbol_num, token = ord(token[:1]), token[1:]
-    verification_tag, token = token[:16], token[16:]
-    nonce, token = token[:16], token[16:]
-    update_header, token = token[:8], token[8:]
-    return (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header), token
+def generic_wrap(plaintext: bytes, key: bytes, ecc_block_size: int,
+                 ecc_symbol_num: int) -> tuple[bytes, bytes, bytes, bytes, bytes]:
+    update_logger = multiprocessing.get_logger()
+
+    update_logger.info("Encrypting data...")
+    encrypted, verification_tag, nonce, update_header, key = encrypt(plaintext, key)
+
+    update_logger.info("Shuffling data...")
+    random.seed()
+    seed = random.randbytes(64)
+    random.seed(seed)
+    shuffled = shuffle_bytes(encrypted, seed)
+
+    update_logger.info("Padding data with error correction...")
+    wrapped = pad(shuffled, ecc_block_size, ecc_symbol_num)
+
+    return wrapped, verification_tag, nonce, update_header, seed
 
 
 def wrap_bpcs(plaintext: bytes, key: bytes, ecc_block_size: int, ecc_symbol_num: int, min_alpha: float):
@@ -62,16 +74,15 @@ def wrap_bpcs(plaintext: bytes, key: bytes, ecc_block_size: int, ecc_symbol_num:
     algorithm = Algorithms.BPCS.to_bytes(1)
     algorithm = struct.pack("c", algorithm)
 
-    update_logger.info("Encrypting data...")
-    encrypted, verification_tag, nonce, update_header, key = encrypt(plaintext, key)
-    update_logger.info("Padding data with error correction...")
-    wrapped = pad(encrypted, ecc_block_size, ecc_symbol_num)
-    update_logger.info("Generating token...")
+    wrapped, verification_tag, nonce, update_header, seed = generic_wrap(plaintext, key, ecc_block_size, ecc_symbol_num)
 
+    update_logger.info("Generating token...")
     token = (algorithm + ecc_block_size.to_bytes(1) + ecc_symbol_num.to_bytes(1) +
-             verification_tag + nonce + update_header + struct.pack("d", min_alpha) + key)
-    if not len(token) == (51 + len(key)):
+             verification_tag + nonce + update_header + seed + struct.pack("d", min_alpha) + key)
+
+    if not len(token) == (115 + len(key)):
         raise TokenError("Token creating parameters are invalid.")
+
     update_logger.info("Wrapping completed!")
     return bytes(wrapped), token
 
@@ -83,18 +94,29 @@ def wrap_lsb(plaintext: bytes, key: bytes, ecc_block_size: int, ecc_symbol_num: 
     algorithm = Algorithms.LSB.to_bytes(1)
     algorithm = struct.pack("c", algorithm)
 
-    update_logger.info("Encrypting data...")
-    encrypted, verification_tag, nonce, update_header, key = encrypt(plaintext, key)
-    update_logger.info("Padding data with error correction...")
-    wrapped = pad(encrypted, ecc_block_size, ecc_symbol_num)
+    wrapped, verification_tag, nonce, update_header, seed = generic_wrap(plaintext, key, ecc_block_size, ecc_symbol_num)
+
     update_logger.info("Generating token...")
     token = (algorithm + ecc_block_size.to_bytes(1) + ecc_symbol_num.to_bytes(1) +
-             verification_tag + nonce + update_header + struct.pack("c", num_of_sacrificed_bits.to_bytes(1)) + key)
+             verification_tag + nonce + update_header + seed +
+             struct.pack("c", num_of_sacrificed_bits.to_bytes(1)) + key)
 
-    if not len(token) == (44 + len(key)):
+    if not len(token) == (108 + len(key)):
         raise TokenError("Token creating parameters are invalid.")
+
     update_logger.info("Wrapping completed!")
     return bytes(wrapped), token
+
+
+def get_base_data_from_token(token: bytes):
+    algorithm, token = ord(struct.unpack("c", token[:1])[0]), token[1:]
+    ecc_block_size, token = ord(token[:1]), token[1:]
+    ecc_symbol_num, token = ord(token[:1]), token[1:]
+    verification_tag, token = token[:16], token[16:]
+    nonce, token = token[:16], token[16:]
+    update_header, token = token[:8], token[8:]
+    seed, token = token[:64], token[64:]
+    return (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header), seed, token
 
 
 def get_bpcs_token_info(token: bytes):
@@ -107,32 +129,36 @@ def get_bpcs_token_info(token: bytes):
     """
     update_logger = multiprocessing.get_logger()
     update_logger.info("Extracting data from BPCS token...")
-    if not len(token) >= 51:
+    if not len(token) >= 115:
         raise TokenError("Token length is invalid. Token length must be equal to or greater than 42 bytes.")
 
-    (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header), token = get_base_data_from_token(token)
+    ((ecc_block_size, ecc_symbol_num),
+     (verification_tag, nonce, update_header), seed, token) = get_base_data_from_token(token)
 
     min_alpha, token = struct.unpack("d", token[:8])[0], token[8:]
     key = token
     update_logger.info("Data extraction completed!")
-    return (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key), min_alpha
+    return (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key), seed, min_alpha
 
 
 def get_lsb_token_info(token: bytes):
     update_logger = multiprocessing.get_logger()
     update_logger.info("Extracting data from LSB token...")
-    if not len(token) >= 44:
+
+    if not len(token) >= 108:
         raise TokenError("Token length is invalid. Token length must be equal to or greater than 43 bytes.")
 
-    (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header), token = get_base_data_from_token(token)
+    ((ecc_block_size, ecc_symbol_num),
+     (verification_tag, nonce, update_header), seed, token) = get_base_data_from_token(token)
     num_of_sacrificed_bits, token = int.from_bytes(struct.unpack("c", token[:1])[0]), token[1:]
+
     key = token
     update_logger.info("Data extraction completed!")
-    return (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key), num_of_sacrificed_bits
+    return (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key), seed, num_of_sacrificed_bits
 
 
 def unwrap(wrapped: bytes, ecc_block_size: int, ecc_symbol_num: int, verification_tag: bytes, nonce: bytes,
-           update_header: bytes, key: bytes):
+           update_header: bytes, seed: bytes, key: bytes):
     """
     Unwraps content, using the following wrapping parameters.
     :param wrapped: the wrapped content
@@ -141,6 +167,7 @@ def unwrap(wrapped: bytes, ecc_block_size: int, ecc_symbol_num: int, verificatio
     :param verification_tag: the GCM tag
     :param nonce: the GCM nonce
     :param update_header: the GCM header
+    :param seed: the shuffling seed
     :param key: the encryption key
     :return: the unwrapped content
     :raises ReedSolomonError: if the function was fed invalid parameters, or the data had too many errors for the rs
@@ -149,10 +176,16 @@ def unwrap(wrapped: bytes, ecc_block_size: int, ecc_symbol_num: int, verificatio
     """
     update_logger = multiprocessing.get_logger()
     update_logger.info("Unwrapping decoded data...")
+
     update_logger.info("Unpadding data...")
-    ciphertext = unpad(wrapped, ecc_block_size, ecc_symbol_num)
+    shuffled = unpad(wrapped, ecc_block_size, ecc_symbol_num)
+
+    update_logger.info("Unshuffling data...")
+    ciphertext = unshuffle_bytes(shuffled, seed)
+
     update_logger.info("Decrypting data...")
     dec = decrypt(ciphertext, key, verification_tag, nonce, update_header)
+
     update_logger.info("Unwrapping completed!")
     return dec
 

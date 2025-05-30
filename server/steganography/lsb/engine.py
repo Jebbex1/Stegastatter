@@ -12,12 +12,11 @@ def lsb_encode(source_image_bytes: bytes, message: bytes, key: str, ecc_block_si
 
 
 def lsb_decode(source_image_bytes: bytes, token: bytes) -> bytes:
-    ((ecc_block_size, ecc_symbol_num),
-     (verification_tag, nonce, update_header, key),
-     num_of_sacrificed_bits) = get_lsb_token_info(token)
+    ((ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key),
+     seed, num_of_sacrificed_bits) = get_lsb_token_info(token)
     img = LSBImage(source_image_bytes, num_of_sacrificed_bits)
     wrapped = img.decode()
-    return unwrap(wrapped, ecc_block_size, ecc_symbol_num, verification_tag, nonce, update_header, key)
+    return unwrap(wrapped, ecc_block_size, ecc_symbol_num, verification_tag, nonce, update_header, seed, key)
 
 
 def lsb_calculate_max_capacity(source_image_bytes: bytes, ecc_block_size: int = 255, ecc_symbol_num: int = 16,
