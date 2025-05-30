@@ -129,7 +129,7 @@ class StegastatterApplication:
         self.main_window.action_slice_image_bit_planes.triggered.connect(self.use_bit_plane_slicing_widget)
         self.main_window.action_get_diff.triggered.connect(self.use_image_diff_widget)
 
-    def is_valid_file_and_path(self, path: str, validate_size: bool):
+    def validate_file_path(self, path: str, validate_size: bool):
         if path in self.selected_paths_set:
             raise InvalidParametersError(f"Path '{path}' is already selected, please select another one.")
 
@@ -195,9 +195,8 @@ class StegastatterApplication:
         path = QFileDialog.getOpenFileName(self.main_window,
                                            "Select an existing image to use as a Vessel Image",
                                            filter=IMAGE_FILTER)[0]
-
-        if not self.is_valid_file_and_path(path, True):
-            return
+        
+        self.validate_file_path(path, True)
 
         self.selected_vessel_input_path = path
         self.selected_paths_set.add(self.selected_vessel_input_path)
@@ -210,8 +209,7 @@ class StegastatterApplication:
                                            "Select an existing image to extract data from",
                                            filter=IMAGE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, True):
-            return
+        self.validate_file_path(path, True)
 
         self.selected_stegged_input_path = path
         self.selected_paths_set.add(self.selected_stegged_input_path)
@@ -224,8 +222,7 @@ class StegastatterApplication:
                                            "Select where to save the Stegged Image",
                                            filter=IMAGE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, False):
-            return
+        self.validate_file_path(path, False)
 
         self.selected_stegged_output_path = path
         self.selected_paths_set.add(self.selected_stegged_output_path)
@@ -238,8 +235,7 @@ class StegastatterApplication:
                                            "Select a file to embed into an image",
                                            filter=ANY_FILE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, True):
-            return
+        self.validate_file_path(path, True)
 
         self.selected_message_input_path = path
         self.selected_paths_set.add(self.selected_message_input_path)
@@ -252,8 +248,7 @@ class StegastatterApplication:
                                            "Select where to save the extracted data",
                                            filter=ANY_FILE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, False):
-            return
+        self.validate_file_path(path, False)
 
         self.selected_message_output_path = path
         self.selected_paths_set.add(self.selected_message_output_path)
@@ -267,8 +262,7 @@ class StegastatterApplication:
                                            "for this image",
                                            filter=BIN_FILE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, True):
-            return
+        self.validate_file_path(path, True)
 
         self.selected_token_input_path = path
         self.selected_paths_set.add(self.selected_token_input_path)
@@ -282,8 +276,7 @@ class StegastatterApplication:
                                            "algorithm parameters",
                                            filter=BIN_FILE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, False):
-            return
+        self.validate_file_path(path, False)
 
         self.selected_token_output_path = path
         self.selected_paths_set.add(self.selected_token_output_path)
@@ -296,8 +289,7 @@ class StegastatterApplication:
                                            "Select the first image to compare",
                                            filter=IMAGE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, True):
-            return
+        self.validate_file_path(path, True)
 
         self.selected_image_diff_input_1 = path
         self.selected_paths_set.add(self.selected_image_diff_input_1)
@@ -310,8 +302,7 @@ class StegastatterApplication:
                                            "Select the second image to compare",
                                            filter=IMAGE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, True):
-            return
+        self.validate_file_path(path, True)
 
         self.selected_image_diff_input_2 = path
         self.selected_paths_set.add(self.selected_image_diff_input_2)
@@ -325,8 +316,7 @@ class StegastatterApplication:
                                            "the provided images",
                                            filter=IMAGE_FILTER)[0]
 
-        if not self.is_valid_file_and_path(path, False):
-            return
+        self.validate_file_path(path, False)
 
         self.selected_image_diff_output_path = path
         self.selected_paths_set.add(self.selected_image_diff_output_path)
@@ -339,8 +329,7 @@ class StegastatterApplication:
                                                 "Select where to save the sliced bit planes of the "
                                                 "provided image")
 
-        if not self.is_valid_file_and_path(path, False):
-            return
+        self.validate_file_path(path, False)
 
         self.selected_bit_plane_slicing_output_folder_path = path
         self.selected_paths_set.add(self.selected_bit_plane_slicing_output_folder_path)
