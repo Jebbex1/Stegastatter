@@ -22,4 +22,6 @@ def unshuffle_bytes(shuffled_bytes: bytes, seed: bytes):
 
     zipped_ls = list(zip(shuffled_bytes, shuffled_perm))
     zipped_ls.sort(key=lambda x: x[1])
-    return [a for (a, b) in zipped_ls]
+    unshuffled = bytearray()
+    [unshuffled.append(a) for (a, b) in zipped_ls]
+    return bytes(unshuffled)
