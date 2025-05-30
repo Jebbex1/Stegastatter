@@ -24,10 +24,11 @@ def bpcs_decode(source_image_bytes: bytes, token: bytes) -> bytes:
     """
     Decodes data from the image at source_image_path, and returns the data.
     """
-    (ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key), alpha = get_bpcs_token_info(token)
+    ((ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key),
+     seed, min_alpha) = get_bpcs_token_info(token)
     img = BPCSImage(source_image_bytes, as_cgc=True)
-    wrapped = img.decode(alpha)
-    return unwrap(wrapped, ecc_block_size, ecc_symbol_num, verification_tag, nonce, update_header, key)
+    wrapped = img.decode(min_alpha)
+    return unwrap(wrapped, ecc_block_size, ecc_symbol_num, verification_tag, nonce, update_header, seed, key)
 
 
 def bpcs_calculate_max_capacity(source_image_bytes: bytes, ecc_block_size: int = 255,
