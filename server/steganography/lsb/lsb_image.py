@@ -103,8 +103,6 @@ class LSBImage:
 
         data_byte_length = len(data)
 
-        print(data_byte_length * 8)
-
         if check_capacity:
             update_logger.info("Checking if image has enough capacity to contain the sent data...")
             if not self.check_capacity(data_byte_length*8):
@@ -129,8 +127,6 @@ class LSBImage:
         iv = self.read_bits(self.iv_bit_len)
         data_length = bit_list_to_int(iv)
         output = self.read_bits(data_length)
-
-        print(data_length)
 
         update_logger.info("Reading process finished!")
         return bits_to_bytes(output)
