@@ -1,6 +1,7 @@
 .idea/
 test.py
 *.test.py
+*.drawio.bkp
 
 
 # Byte-compiled / optimized / DLL files
