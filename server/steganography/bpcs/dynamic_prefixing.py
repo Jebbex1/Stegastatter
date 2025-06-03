@@ -1,14 +1,8 @@
 import math
 from random import choices
 import numpy as np
-from sympy import simplify
-from sympy.stats import Normal as NormalDistribution, P
 
 from server.steganography.bpcs.core import calc_bpcs_complexity_coefficient
-
-
-complexity_coeff_dist = NormalDistribution('Z', 0.5, 0.047)
-chance_of_success = 0.25
 
 
 def get_prefix_length(block_area: int, min_alpha: float) -> int:
@@ -18,7 +12,7 @@ def get_prefix_length(block_area: int, min_alpha: float) -> int:
     :param min_alpha: the minimum complexity coefficient that the prefix should fulfill
     """
     # calibrated rho function
-    return math.ceil((chance_of_success / simplify(P(complexity_coeff_dist > min_alpha))) * block_area)
+    return math.ceil(block_area * (1.4*min_alpha + 0.05))
 
 
 def get_next_dynamically_prefixed_block(bits: list[bool], block_shape: tuple[int, int], min_alpha: float):
@@ -34,6 +28,10 @@ def get_next_dynamically_prefixed_block(bits: list[bool], block_shape: tuple[int
     data_length = block_area - prefix_length
     block_data, bits = bits[:data_length], bits[data_length:]
 
+    if min_alpha == 0.0:
+        return np.reshape(block_data, block_shape), bits
+
+    i = 1
     while True:
         block = np.concatenate([choices([True, False], k=prefix_length), block_data])
 
@@ -43,7 +41,10 @@ def get_next_dynamically_prefixed_block(bits: list[bool], block_shape: tuple[int
         block = np.reshape(block, block_shape)
 
         if calc_bpcs_complexity_coefficient(block) >= min_alpha:
+            print(i)
             return block, bits
+        else:
+            i += 1
 
 
 def bits_to_prefixed_blocks(bits: list[bool], block_shape: tuple[int, int], min_alpha: float) -> np.ndarray:
