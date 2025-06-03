@@ -3,7 +3,7 @@ import numpy as np
 
 from server.steganography.bpcs.core import calc_bpcs_complexity_coefficient
 from server.steganography.bpcs.dimension_computing import compute_all_block_indices
-from server.steganography.bpcs.initilization_vector import get_prefix_length
+from server.steganography.bpcs.dynamic_prefixing import get_prefix_length
 from server.steganography.content_wrapper.wrapper import get_max_unwapped_length
 
 
