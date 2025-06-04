@@ -75,6 +75,7 @@ class ClientConnection:
         status_logger = multiprocessing.get_logger()
         try:
             self.skt = new_server_connection(self.server_ip)
+            encryption_key = " " if encryption_key == "" else encryption_key
             params_dict = {
                 "encryption-key": encryption_key,
                 "ecc-block-size": str(ecc_block_size),
@@ -127,6 +128,7 @@ class ClientConnection:
         status_logger = multiprocessing.get_logger()
         try:
             self.skt = new_server_connection(self.server_ip)
+            encryption_key = " " if encryption_key == "" else encryption_key
             params_dict = {
                 "encryption-key": encryption_key,
                 "ecc-block-size": str(ecc_block_size),

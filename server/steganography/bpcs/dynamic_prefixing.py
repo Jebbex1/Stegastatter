@@ -31,7 +31,6 @@ def get_next_dynamically_prefixed_block(bits: list[bool], block_shape: tuple[int
     if min_alpha == 0.0:
         return np.reshape(block_data, block_shape), bits
 
-    i = 1
     while True:
         block = np.concatenate([choices([True, False], k=prefix_length), block_data])
 
@@ -41,10 +40,7 @@ def get_next_dynamically_prefixed_block(bits: list[bool], block_shape: tuple[int
         block = np.reshape(block, block_shape)
 
         if calc_bpcs_complexity_coefficient(block) >= min_alpha:
-            print(i)
             return block, bits
-        else:
-            i += 1
 
 
 def bits_to_prefixed_blocks(bits: list[bool], block_shape: tuple[int, int], min_alpha: float) -> np.ndarray:
