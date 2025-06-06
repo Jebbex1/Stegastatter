@@ -51,7 +51,7 @@ def get_headers_dict(packet: bytes) -> dict[str, str]:
     header_structure_match = re.findall(HEADER_PATTERN.encode(), packet)[1:header_num+1]
     headers_dict = {}
     for match in header_structure_match:
-        match = match.extract()
+        match = match.decode()
         segments = match.split(":")
         header, value = segments[0], ":".join(segments[1:])
         headers_dict[header] = value[:-2]
