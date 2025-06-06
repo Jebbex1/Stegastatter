@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QMainWindow, QP
 from client.client_connection import ClientConnection
 from client.gui.gui_errors import MissingParametersError, InvalidParametersError
 from client.gui.gui_utils import get_form_field_text
-from client.gui.steg_params_validator import validate_lsb_params, validate_bpcs_params, validate_ecc_params
+from client.gui.params_validator import validate_lsb_params, validate_bpcs_params, validate_ecc_params
 from client.gui.textedit_logger import LoggerOperationsHandler
 from client.gui.ui_wigdet_generator import generate_custom_button, generate_encryption_key_field_widget, \
     generate_lsb_params_widget, generate_bpcs_params_widget, generate_ecc_params_widget
@@ -79,7 +79,7 @@ class StegastatterApplication:
         self.handler = LoggerOperationsHandler(self.status_logs, self.start_button)
 
         status_logger.addHandler(self.handler)
-        status_logger.addFilter(self.update)
+        status_logger.addFilter(self.update_status)
 
         self.connect_actions()
         self.main_window.show()
@@ -91,7 +91,7 @@ class StegastatterApplication:
         if self.client_connection is not None:
             self.client_connection.initiate_terminatation_protocol()
 
-    def update(self, record: logging.LogRecord):
+    def update_status(self, record: logging.LogRecord):
         match record.levelname:
             case "INFO":
                 white_text = f"<span style=\" color:{NORMAL_TEXT_COLOR};\" >{record.getMessage()}</span>"
@@ -547,11 +547,6 @@ class StegastatterApplication:
     def validate_max_capacity_paths(self):
         if self.selected_vessel_input_path is None:
             raise MissingParametersError("A vessel image input path is required.")
-
-    def validate_check_fits_paths(self):
-        self.validate_max_capacity_paths()
-        if self.selected_message_input_path is None:
-            raise MissingParametersError("A message file input path is required.")
 
     def validate_bit_plane_slicing_paths(self):
         if self.selected_vessel_input_path is None:

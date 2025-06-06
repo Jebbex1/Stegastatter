@@ -36,26 +36,26 @@ class ClientConnection:
         self.skt: socket.socket | None = None
         self.running = True
 
-    def synced_thread_recv_packet(self, skt: socket.socket) -> PacketInfo:
+    def synced_thread_recv_packet(self) -> PacketInfo:
         if self.thread_lock.locked():
-            skt.close()
+            self.skt.close()
             exit(0)
 
         try:
-            return recv_packet(skt)
+            return recv_packet(self.skt)
         except TimeoutError:
-            skt.close()
+            self.skt.close()
             exit(0)
 
-    def synced_thread_send_packet(self, skt: socket.socket, packet: bytes) -> None:
+    def synced_thread_send_packet(self, packet: bytes) -> None:
         if self.thread_lock.locked():
-            skt.close()
+            self.skt.close()
             exit(0)
 
         try:
-            send_packet(skt, packet)
+            send_packet(self.skt, packet)
         except TimeoutError:
-            skt.close()
+            self.skt.close()
             exit(0)
 
     def initiate_terminatation_protocol(self):

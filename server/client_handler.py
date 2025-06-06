@@ -13,7 +13,7 @@ from shared.communication_protocol.packet_analyzer import PacketInfo
 from shared.utils import sock_name
 from shared.communication_protocol.communication_errors import TransmissionProtocolError, PacketStructureError, \
     PacketContentsError
-from server.steganography.bpcs.engine import bpcs_embed, bpcs_extract, bpcs_calculate_max_capacity
+from server.steganography.bpcs.bpcs_engine import bpcs_embed, bpcs_extract, bpcs_calculate_max_capacity
 from server.steganography.steganalysis.bit_plane_slicing import slice_rgb_bit_planes
 from server.steganography.steganalysis.get_diff import show_diff
 from reedsolo import ReedSolomonError

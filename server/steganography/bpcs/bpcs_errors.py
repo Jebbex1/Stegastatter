@@ -15,7 +15,7 @@ class BPCSCapacityError(BPCSError):
     pass
 
 
-class BPCSEmbedeError(BPCSError):
+class BPCSEmbedError(BPCSError):
     """
     Errors that deal with the embedding process of data in an image.
     """
