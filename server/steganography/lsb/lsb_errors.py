@@ -15,15 +15,15 @@ class LSBCapacityError(LSBError):
     pass
 
 
-class LSBEncodeError(LSBError):
+class LSBEmbedError(LSBError):
     """
-    Errors that deal with the encoding process of data in an image.
+    Errors that deal with the embedding process of data in an image.
     """
     pass
 
 
-class LSBDecodeError(LSBError):
+class LSBExtractError(LSBError):
     """
-    Errors that deal with the decoding process of data in an image.
+    Errors that deal with the extracting process of data in an image.
     """
     pass

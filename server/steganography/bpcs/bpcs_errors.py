@@ -15,15 +15,15 @@ class BPCSCapacityError(BPCSError):
     pass
 
 
-class BPCSEncodeError(BPCSError):
+class BPCSEmbedeError(BPCSError):
     """
-    Errors that deal with the encoding process of data in an image.
+    Errors that deal with the embedding process of data in an image.
     """
     pass
 
 
-class BPCSDecodeError(BPCSError):
+class BPCSExtractError(BPCSError):
     """
-    Errors that deal with the decoding process of data in an image.
+    Errors that deal with the extracting process of data in an image.
     """
     pass

@@ -1,7 +1,7 @@
 # transmission specifications
 PORT = 8374  # shared port
 CHARSET = 'utf-8'
-LFS = 16  # length field size
+LFS = 24  # length field size
 RECV_BUFFER_SIZE = 128000
 
 # packet structure
@@ -27,14 +27,14 @@ CODES: dict[str, tuple[str, list[str]]] = {
             []),
 
     # 1xx: Client requests and related (only client sends)
-    "100": ("BPCS steganography encoding request",  # vessel image in body, followed by message upload
+    "100": ("BPCS steganography embedding request",  # vessel image in body, followed by message upload
             [
                 "encryption-key",
                 "ecc-block-size",
                 "ecc-symbol-num",
                 "alpha",
             ]),
-    "101": ("LSB steganography encoding request",  # vessel image in body, followed by message upload
+    "101": ("LSB steganography embedding request",  # vessel image in body, followed by message upload
             [
                 "encryption-key",
                 "ecc-block-size",
@@ -42,7 +42,7 @@ CODES: dict[str, tuple[str, list[str]]] = {
                 "number-of-sacrificed-bits"
             ]),
 
-    "120": ("Steganography decoding request",  # vessel image in body, followed by token upload
+    "120": ("Steganography extracting request",  # vessel image in body, followed by token upload
             []),
 
     "140": ("BPCS maximum capacity calculation request",  # image in body
@@ -72,9 +72,9 @@ CODES: dict[str, tuple[str, list[str]]] = {
             [
                 "status"
             ]),
-    "202": ("Encoding products",  # stegged in body, followed by token upload
+    "202": ("Embedding products",  # stegged in body, followed by token upload
             []),
-    "203": ("Decoding products",  # data in body
+    "203": ("Extracting products",  # data in body
             []),
     "204": ("Capacity calculation products",
             [

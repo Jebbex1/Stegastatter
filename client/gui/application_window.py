@@ -36,9 +36,9 @@ SERVER_ADDRESS = "127.0.0.1"
 
 
 class AlgorithmProfiles(IntEnum):
-    LSB_ENCODE = 1
-    BPCS_ENCODE = 2
-    GENERIC_DECODE = 3
+    LSB_EMBED = 1
+    BPCS_EMBED = 2
+    GENERIC_EXTRACT = 3
     LSB_MAX_CAPACITY = 4
     BPCS_MAX_CAPACITY = 5
     BIT_PLANE_SLICING = 6
@@ -121,9 +121,9 @@ class StegastatterApplication:
         self.selected_bit_plane_slicing_output_folder_path = None
 
     def connect_actions(self):
-        self.main_window.action_encode_lsb.triggered.connect(self.use_lsb_encoding_widget)
-        self.main_window.action_encode_bpcs.triggered.connect(self.use_bpcs_encoding_widget)
-        self.main_window.action_decode_generic.triggered.connect(self.use_decoding_widget)
+        self.main_window.action_embed_lsb.triggered.connect(self.use_lsb_embedding_widget)
+        self.main_window.action_embed_bpcs.triggered.connect(self.use_bpcs_embedding_widget)
+        self.main_window.action_extract_generic.triggered.connect(self.use_extracting_widget)
         self.main_window.action_capacity_max_calculation_lsb.triggered.connect(self.use_lsb_max_capacity_widget)
         self.main_window.action_capacity_max_calculation_bpcs.triggered.connect(self.use_bpcs_max_capacity_widget)
         self.main_window.action_slice_image_bit_planes.triggered.connect(self.use_bit_plane_slicing_widget)
@@ -155,12 +155,12 @@ class StegastatterApplication:
         self.client_connection = ClientConnection(SERVER_ADDRESS, threading.Lock())
         try:
             match self.selected_algorithm_profile:
-                case AlgorithmProfiles.LSB_ENCODE:
-                    self.start_lsb_encode()
-                case AlgorithmProfiles.BPCS_ENCODE:
-                    self.start_bpcs_encode()
-                case AlgorithmProfiles.GENERIC_DECODE:
-                    self.start_generic_decode()
+                case AlgorithmProfiles.LSB_EMBED:
+                    self.start_lsb_embed()
+                case AlgorithmProfiles.BPCS_EMBED:
+                    self.start_bpcs_embed()
+                case AlgorithmProfiles.GENERIC_EXTRACT:
+                    self.start_generic_extract()
                 case AlgorithmProfiles.LSB_MAX_CAPACITY:
                     self.start_lsb_max_capacity()
                 case AlgorithmProfiles.BPCS_MAX_CAPACITY:
@@ -336,9 +336,9 @@ class StegastatterApplication:
 
         button.setStyleSheet(f"background-color: {USED_BUTTON_COLOR};")
 
-    def create_linked_encoding_widget(self) -> QWidget:
+    def create_linked_embedding_widget(self) -> QWidget:
         """
-        For encode we need:
+        For embed we need:
         1. vessel image input button
         2. stegged image output button
         3. message file input button
@@ -358,16 +358,16 @@ class StegastatterApplication:
         layout.addWidget(generate_encryption_key_field_widget())
 
         match self.selected_algorithm_profile:
-            case AlgorithmProfiles.LSB_ENCODE:
+            case AlgorithmProfiles.LSB_EMBED:
                 layout.addWidget(generate_lsb_params_widget())
-            case AlgorithmProfiles.BPCS_ENCODE:
+            case AlgorithmProfiles.BPCS_EMBED:
                 layout.addWidget(generate_bpcs_params_widget())
 
         layout.addWidget(generate_ecc_params_widget())
 
         return widget
 
-    def create_linked_decoding_widget(self) -> QWidget:
+    def create_linked_extracting_widget(self) -> QWidget:
         widget = QWidget()
         widget.setLayout(QVBoxLayout())
         layout = widget.layout()
@@ -428,19 +428,19 @@ class StegastatterApplication:
 
         return dialog_button
 
-    def use_lsb_encoding_widget(self):
-        self.selected_algorithm_profile = AlgorithmProfiles.LSB_ENCODE
-        widget = self.create_linked_encoding_widget()
+    def use_lsb_embedding_widget(self):
+        self.selected_algorithm_profile = AlgorithmProfiles.LSB_EMBED
+        widget = self.create_linked_embedding_widget()
         self.update_menu_widget(widget)
 
-    def use_bpcs_encoding_widget(self):
-        self.selected_algorithm_profile = AlgorithmProfiles.BPCS_ENCODE
-        widget = self.create_linked_encoding_widget()
+    def use_bpcs_embedding_widget(self):
+        self.selected_algorithm_profile = AlgorithmProfiles.BPCS_EMBED
+        widget = self.create_linked_embedding_widget()
         self.update_menu_widget(widget)
 
-    def use_decoding_widget(self):
-        self.selected_algorithm_profile = AlgorithmProfiles.GENERIC_DECODE
-        widget = self.create_linked_decoding_widget()
+    def use_extracting_widget(self):
+        self.selected_algorithm_profile = AlgorithmProfiles.GENERIC_EXTRACT
+        widget = self.create_linked_extracting_widget()
         self.update_menu_widget(widget)
 
     def use_lsb_max_capacity_widget(self):
@@ -478,12 +478,12 @@ class StegastatterApplication:
         symbol_num = self.get_form_field_text_at_group_box_at(group_box_index, 1)
         return block_size, symbol_num
 
-    def get_encoding_params(self) -> tuple[str, str, str]:
+    def get_embedding_params(self) -> tuple[str, str, str]:
         encryption_key = self.get_encryption_key_at(4)
         block_size, symbol_num = self.get_ecc_params_at(6)
         return encryption_key, block_size, symbol_num
 
-    def validate_encode_paths(self):
+    def validate_embed_paths(self):
         if self.selected_vessel_input_path is None:
             raise MissingParametersError("A vessel image input path is required.")
         if self.selected_stegged_output_path is None:
@@ -493,7 +493,7 @@ class StegastatterApplication:
         if self.selected_token_output_path is None:
             raise MissingParametersError("A token file output path is required.")
 
-    def validate_decode_paths(self):
+    def validate_extract_paths(self):
         if self.selected_stegged_input_path is None:
             raise MissingParametersError("A stegged image input path is required.")
         if self.selected_message_output_path is None:
@@ -524,9 +524,9 @@ class StegastatterApplication:
         if self.selected_image_diff_output_path is None:
             raise MissingParametersError("An image diff output path is required.")
 
-    def start_lsb_encode(self):
-        self.validate_encode_paths()
-        encryption_key, block_size, symbol_num = self.get_encoding_params()
+    def start_lsb_embed(self):
+        self.validate_embed_paths()
+        encryption_key, block_size, symbol_num = self.get_embedding_params()
         num_of_sacrificed_bits = self.get_form_field_text_at_group_box_at(5, 0)
 
         validate_header_field_length(encryption_key)
@@ -541,7 +541,7 @@ class StegastatterApplication:
         symbol_num = int(symbol_num)
         num_of_sacrificed_bits = int(num_of_sacrificed_bits)
 
-        self.communication_thread = threading.Thread(target=self.client_connection.initiate_lsb_encoding_request,
+        self.communication_thread = threading.Thread(target=self.client_connection.initiate_lsb_embedding_request,
                                                      args=(self.selected_vessel_input_path,
                                                            self.selected_stegged_output_path,
                                                            self.selected_message_input_path,
@@ -550,9 +550,9 @@ class StegastatterApplication:
                                                            symbol_num, num_of_sacrificed_bits))
         self.communication_thread.start()
 
-    def start_bpcs_encode(self):
-        self.validate_encode_paths()
-        encryption_key, block_size, symbol_num = self.get_encoding_params()
+    def start_bpcs_embed(self):
+        self.validate_embed_paths()
+        encryption_key, block_size, symbol_num = self.get_embedding_params()
         min_alpha = self.get_form_field_text_at_group_box_at(5, 0)
 
         validate_header_field_length(encryption_key)
@@ -567,7 +567,7 @@ class StegastatterApplication:
         symbol_num = int(symbol_num)
         min_alpha = float(min_alpha)
 
-        self.communication_thread = threading.Thread(target=self.client_connection.initiate_bpcs_encoding_request,
+        self.communication_thread = threading.Thread(target=self.client_connection.initiate_bpcs_embedding_request,
                                                      args=(self.selected_vessel_input_path,
                                                            self.selected_stegged_output_path,
                                                            self.selected_message_input_path,
@@ -576,10 +576,10 @@ class StegastatterApplication:
                                                            symbol_num, min_alpha))
         self.communication_thread.start()
 
-    def start_generic_decode(self):
-        self.validate_decode_paths()
+    def start_generic_extract(self):
+        self.validate_extract_paths()
 
-        self.communication_thread = threading.Thread(target=self.client_connection.initiate_decoding_request,
+        self.communication_thread = threading.Thread(target=self.client_connection.initiate_extracting_request,
                                                      args=(self.selected_stegged_input_path,
                                                            self.selected_message_output_path,
                                                            self.selected_token_input_path))

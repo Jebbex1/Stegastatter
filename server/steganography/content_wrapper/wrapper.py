@@ -69,7 +69,7 @@ def wrap_bpcs(plaintext: bytes, key: bytes, ecc_block_size: int, ecc_symbol_num:
     :raises TokenError: if the created token is invalid
     """
     update_logger = multiprocessing.get_logger()
-    update_logger.info("Wrapping data to be encoded with BPCS...")
+    update_logger.info("Wrapping data to be embedded with BPCS...")
 
     algorithm = Algorithms.BPCS.to_bytes(1)
     algorithm = struct.pack("c", algorithm)
@@ -89,7 +89,7 @@ def wrap_bpcs(plaintext: bytes, key: bytes, ecc_block_size: int, ecc_symbol_num:
 
 def wrap_lsb(plaintext: bytes, key: bytes, ecc_block_size: int, ecc_symbol_num: int, num_of_sacrificed_bits: int):
     update_logger = multiprocessing.get_logger()
-    update_logger.info("Wrapping data to be encoded with LSB...")
+    update_logger.info("Wrapping data to be embedded with LSB...")
 
     algorithm = Algorithms.LSB.to_bytes(1)
     algorithm = struct.pack("c", algorithm)
@@ -175,7 +175,7 @@ def unwrap(wrapped: bytes, ecc_block_size: int, ecc_symbol_num: int, verificatio
     :raises ContentWrapperError: if the decryption process fails
     """
     update_logger = multiprocessing.get_logger()
-    update_logger.info("Unwrapping decoded data...")
+    update_logger.info("Unwrapping extracted data...")
 
     update_logger.info("Unpadding data...")
     shuffled = unpad(wrapped, ecc_block_size, ecc_symbol_num)

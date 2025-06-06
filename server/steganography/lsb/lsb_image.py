@@ -97,7 +97,7 @@ class LSBImage:
     def read_byte(self) -> list[bool]:
         return self.read_bits(8)
 
-    def encode(self, data: bytes, check_capacity: bool):
+    def embed(self, data: bytes, check_capacity: bool):
         update_logger = multiprocessing.get_logger()
         update_logger.info("Starting embedding process...")
 
@@ -107,7 +107,7 @@ class LSBImage:
             update_logger.info("Checking if image has enough capacity to contain the sent data...")
             if not self.check_capacity(data_byte_length*8):
                 update_logger.info("Image does NOT have enough capacity!")
-                raise LSBCapacityError("Carrier image not big enough to contain all the data to encode.")
+                raise LSBCapacityError("Carrier image not big enough to contain all the data to embed.")
             update_logger.info("Image has enough capacity!")
 
         iv_bits = construct_iv(data_byte_length*8, self.iv_bit_len)
@@ -120,7 +120,7 @@ class LSBImage:
 
         return self.image
 
-    def decode(self):
+    def extract(self):
         update_logger = multiprocessing.get_logger()
         update_logger.info("Starting reading process...")
 

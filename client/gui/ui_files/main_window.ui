@@ -68,28 +68,22 @@
     <property name="title">
      <string>Steganography</string>
     </property>
-    <widget class="QMenu" name="menu_encode">
+    <widget class="QMenu" name="menu_embed">
      <property name="title">
-      <string>Encode data into an image</string>
+      <string>Embed (hide) data into an image</string>
      </property>
-     <addaction name="action_encode_lsb"/>
-     <addaction name="action_encode_bpcs"/>
+     <addaction name="action_embed_lsb"/>
+     <addaction name="action_embed_bpcs"/>
     </widget>
     <widget class="QMenu" name="menu_capacity">
      <property name="title">
-      <string>Check the capacity of an image</string>
+      <string>Check the maximum capacity of an image</string>
      </property>
-     <widget class="QMenu" name="menu_capacity_max_calculation">
-      <property name="title">
-       <string>Get the maximum capacity of an image</string>
-      </property>
-      <addaction name="action_capacity_max_calculation_lsb"/>
-      <addaction name="action_capacity_max_calculation_bpcs"/>
-     </widget>
-     <addaction name="menu_capacity_max_calculation"/>
+     <addaction name="action_capacity_max_calculation_bpcs"/>
+     <addaction name="action_capacity_max_calculation_lsb"/>
     </widget>
-    <addaction name="menu_encode"/>
-    <addaction name="action_decode_generic"/>
+    <addaction name="menu_embed"/>
+    <addaction name="action_extract_generic"/>
     <addaction name="menu_capacity"/>
    </widget>
    <widget class="QMenu" name="menu_steganalysis">
@@ -102,17 +96,17 @@
    <addaction name="menu_steganography"/>
    <addaction name="menu_steganalysis"/>
   </widget>
-  <action name="action_decode_generic">
+  <action name="action_extract_generic">
    <property name="text">
     <string>Extract data from an image</string>
    </property>
   </action>
-  <action name="action_encode_lsb">
+  <action name="action_embed_lsb">
    <property name="text">
     <string>Using LSB Steganography</string>
    </property>
   </action>
-  <action name="action_capacity_max_calculation_lsb">
+  <action name="action_capacity_max_calculation_lsb_1">
    <property name="text">
     <string>Using LSB Steganography</string>
    </property>
@@ -122,12 +116,12 @@
     <string>Using LSB Steganography</string>
    </property>
   </action>
-  <action name="action_encode_bpcs">
+  <action name="action_embed_bpcs">
    <property name="text">
     <string>Using BPCS Steganography</string>
    </property>
   </action>
-  <action name="action_capacity_max_calculation_bpcs">
+  <action name="action_capacity_max_calculation_bpcs_1">
    <property name="text">
     <string>Using BPCS Steganography</string>
    </property>
@@ -145,6 +139,16 @@
   <action name="action_get_diff">
    <property name="text">
     <string>Get diffrence between two images</string>
+   </property>
+  </action>
+  <action name="action_capacity_max_calculation_bpcs">
+   <property name="text">
+    <string>Using BPCS Steganography</string>
+   </property>
+  </action>
+  <action name="action_capacity_max_calculation_lsb">
+   <property name="text">
+    <string>Using LSB Steganography</string>
    </property>
   </action>
  </widget>

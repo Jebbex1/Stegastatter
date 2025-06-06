@@ -69,9 +69,9 @@ class ClientConnection:
         status_logger.info("Connection with server terminated.")
         status_logger.log(logging.DEBUG, "done")
 
-    def initiate_bpcs_encoding_request(self, vessel_image_path: str, image_output_path: str, message_file_path: str,
-                                       token_output_path: str, encryption_key: str, ecc_block_size: int,
-                                       ecc_symbol_size: int, alpha: float) -> None:
+    def initiate_bpcs_embedding_request(self, vessel_image_path: str, image_output_path: str, message_file_path: str,
+                                        token_output_path: str, encryption_key: str, ecc_block_size: int,
+                                        ecc_symbol_size: int, alpha: float) -> None:
         status_logger = multiprocessing.get_logger()
         try:
             self.skt = new_server_connection(self.server_ip)
@@ -99,11 +99,11 @@ class ClientConnection:
                         status_logger.info("Received BPCS token image from server!")
                         open(token_output_path, "wb").write(packet.body)
                     case "200":
-                        status_logger.info("Server accepted BPCS encoding request!")
+                        status_logger.info("Server accepted BPCS embedding request!")
                     case "201":
                         status_logger.info(packet.headers["status"])
                     case "202":
-                        status_logger.info("Received BPCS encoded from server!")
+                        status_logger.info("Received BPCS embedded from server!")
                         open(image_output_path, "wb").write(packet.body)
                     case "500":
                         status_logger.info(get_dissconnect_packet_line(packet))
@@ -122,9 +122,9 @@ class ClientConnection:
         except ssl.SSLError as e:
             status_logger.info(f"There was en error regarding the TLS connection {e}")
 
-    def initiate_lsb_encoding_request(self, vessel_image_path: str, image_output_path: str, message_file_path: str,
-                                      token_output_path: str, encryption_key: str, ecc_block_size: int,
-                                      ecc_symbol_size: int, num_of_sacrificed_bits: int) -> None:
+    def initiate_lsb_embedding_request(self, vessel_image_path: str, image_output_path: str, message_file_path: str,
+                                       token_output_path: str, encryption_key: str, ecc_block_size: int,
+                                       ecc_symbol_size: int, num_of_sacrificed_bits: int) -> None:
         status_logger = multiprocessing.get_logger()
         try:
             self.skt = new_server_connection(self.server_ip)
@@ -152,11 +152,11 @@ class ClientConnection:
                         status_logger.info("Received LSB token image from server!")
                         open(token_output_path, "wb").write(packet.body)
                     case "200":
-                        status_logger.info("Server accepted LSB encoding request!")
+                        status_logger.info("Server accepted LSB embedding request!")
                     case "201":
                         status_logger.info(packet.headers["status"])
                     case "202":
-                        status_logger.info("Received LSB encoded image from server!")
+                        status_logger.info("Received LSB embedded image from server!")
                         open(image_output_path, "wb").write(packet.body)
                     case "500":
                         status_logger.info(get_dissconnect_packet_line(packet))
@@ -176,7 +176,7 @@ class ClientConnection:
         except ssl.SSLError as e:
             status_logger.info(f"There was en error regarding the TLS connection {e}")
 
-    def initiate_decoding_request(self, stegged_image_path: str, message_output_path: str, token_path: str) -> None:
+    def initiate_extracting_request(self, stegged_image_path: str, message_output_path: str, token_path: str) -> None:
         status_logger = multiprocessing.get_logger()
         try:
             self.skt = new_server_connection(self.server_ip)
@@ -193,11 +193,11 @@ class ClientConnection:
                 packet = self.synced_thread_recv_packet(self.skt)
                 match packet.code:
                     case "200":
-                        status_logger.info("Server accepted decoding request!")
+                        status_logger.info("Server accepted exctracing request!")
                     case "201":
                         status_logger.info(packet.headers["status"])
                     case "203":
-                        status_logger.info("Received decoded data from server!")
+                        status_logger.info("Received extracted data from server!")
                         open(message_output_path, "wb").write(packet.body)
                     case "500":
                         status_logger.info(get_dissconnect_packet_line(packet))

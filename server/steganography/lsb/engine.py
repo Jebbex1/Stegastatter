@@ -3,19 +3,19 @@ from server.steganography.image_utils import image_to_bytes
 from server.steganography.lsb.lsb_image import *
 
 
-def lsb_encode(source_image_bytes: bytes, message: bytes, key: str, ecc_block_size: int = 255,
-               ecc_symbol_num: int = 16, num_of_sacrificed_bits: int = 2, check_capacity=True) -> tuple[bytes, bytes]:
+def lsb_embed(source_image_bytes: bytes, message: bytes, key: str, ecc_block_size: int = 255,
+              ecc_symbol_num: int = 16, num_of_sacrificed_bits: int = 2, check_capacity=True) -> tuple[bytes, bytes]:
     message, token = wrap_lsb(message, key.encode(), ecc_block_size, ecc_symbol_num, num_of_sacrificed_bits)
     img = LSBImage(source_image_bytes, num_of_sacrificed_bits)
-    new_image = img.encode(message, check_capacity)
+    new_image = img.embed(message, check_capacity)
     return image_to_bytes(new_image), token
 
 
-def lsb_decode(source_image_bytes: bytes, token: bytes) -> bytes:
+def lsb_extract(source_image_bytes: bytes, token: bytes) -> bytes:
     ((ecc_block_size, ecc_symbol_num), (verification_tag, nonce, update_header, key),
      seed, num_of_sacrificed_bits) = get_lsb_token_info(token)
     img = LSBImage(source_image_bytes, num_of_sacrificed_bits)
-    wrapped = img.decode()
+    wrapped = img.extract()
     return unwrap(wrapped, ecc_block_size, ecc_symbol_num, verification_tag, nonce, update_header, seed, key)
 
 
