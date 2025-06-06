@@ -1,7 +1,6 @@
 import itertools
-import builtins
 import multiprocessing
-from typing import Generator
+from typing import Generator, Callable
 import numpy as np
 
 from server.steganography.bpcs.bpcs_errors import BPCSError
@@ -20,7 +19,7 @@ def xor_lists(a: list[bool], b: list[bool]) -> list[bool]:
     return [x ^ y for x, y in zip(a, b)]
 
 
-def map_2d_array(arr: np.ndarray, func: builtins.callable) -> np.ndarray:
+def map_2d_array(arr: np.ndarray, func: Callable) -> np.ndarray:
     """
     Given a 2d numpy array, and a function func, map over each and every element of arr while reassigning it to
     func(arr[i, j]), and returning the resulting 2d numpy array.
