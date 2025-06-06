@@ -37,7 +37,7 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>Please select an algorithm profile from the menu at the top of the screen</string>
+       <string>Please select the algorithm you wish to use from the toolbar on the top of the screen</string>
       </property>
       <property name="textFormat">
        <enum>Qt::TextFormat::RichText</enum>
