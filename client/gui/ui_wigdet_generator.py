@@ -1,6 +1,5 @@
 from functools import partial
 from typing import Callable
-
 from PySide6.QtWidgets import QPushButton
 
 from client.gui.ui_loader import load_ui

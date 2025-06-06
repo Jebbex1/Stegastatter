@@ -2,7 +2,6 @@ import logging
 import multiprocessing
 import threading
 from enum import IntEnum
-
 from PySide6.QtGui import QTextCursor, QPixmap
 from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout, QMainWindow, QPushButton, QTextEdit, QCheckBox
 
@@ -382,7 +381,7 @@ class StegastatterApplication:
 
     def create_linked_embedding_widget(self) -> QWidget:
         """
-        For embed we need:
+        For embedding we need:
         1. vessel image input button
         2. stegged image output button
         3. message file input button

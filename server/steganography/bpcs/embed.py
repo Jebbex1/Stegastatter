@@ -2,12 +2,10 @@ import multiprocessing
 import numpy as np
 
 from server.steganography.bpcs.block_operations import bytes_to_blocks
-from server.steganography.bpcs.dimension_computing import compute_all_block_indices
 from server.steganography.bpcs.core import calc_bpcs_complexity_coefficient, conjugate
 from server.steganography.bpcs.initilization_vector import build_iv_blocks, build_conjugation_blocks
 from server.steganography.bpcs.bpcs_errors import BPCSError, BPCSCapacityError
-from server.steganography.bpcs.capacity import calculate_embedding_blocks_num, count_accepted_blocks, \
-    collect_accepted_blocks
+from server.steganography.bpcs.capacity import calculate_embedding_blocks_num, collect_accepted_blocks
 
 
 def get_message_blocks_from_bytes(message: bytes) -> tuple[np.ndarray, int]:

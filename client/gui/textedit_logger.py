@@ -1,16 +1,8 @@
 import logging
-import multiprocessing
-import sys
-import threading
-import time
 from functools import cached_property
-
-from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QTextCursor
-from PySide6.QtWidgets import QTextEdit, QApplication, QMainWindow, QPushButton
-
-from client.gui.ui_loader import load_ui
+from PySide6.QtWidgets import QTextEdit, QPushButton
 
 
 class Bridge(QObject):

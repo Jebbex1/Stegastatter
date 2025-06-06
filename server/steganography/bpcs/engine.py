@@ -1,5 +1,3 @@
-import math
-
 from server.steganography.bpcs.bpcs_image import BPCSImage
 from server.steganography.bpcs.embed import get_message_blocks_from_bytes
 from server.steganography.bpcs.capacity import calculate_maximum_capacity

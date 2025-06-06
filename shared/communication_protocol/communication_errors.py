@@ -1,4 +1,3 @@
-
 class ConnectionStreamError(Exception):
     pass
 
