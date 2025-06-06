@@ -8,6 +8,7 @@ from shared.communication_protocol.packet_analyzer import PacketInfo
 def recv_packet(skt: socket.socket, validate_sizes: bool = False) -> PacketInfo:
     """
     Receives a packet by the transmission protocol, and returns it as a string.
+    :param validate_sizes: should the
     :param skt: the socket interface that we can use to communicate
     :return: the received packet
     """
