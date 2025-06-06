@@ -196,7 +196,11 @@ class StegastatterApplication:
                                            "Select an existing image to use as a Vessel Image",
                                            filter=IMAGE_FILTER)[0]
         
-        self.validate_file_path(path, True)
+        try:
+            self.validate_file_path(path, True)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_vessel_input_path = path
         self.selected_paths_set.add(self.selected_vessel_input_path)
@@ -209,7 +213,11 @@ class StegastatterApplication:
                                            "Select an existing image to extract data from",
                                            filter=IMAGE_FILTER)[0]
 
-        self.validate_file_path(path, True)
+        try:
+            self.validate_file_path(path, True)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_stegged_input_path = path
         self.selected_paths_set.add(self.selected_stegged_input_path)
@@ -222,7 +230,11 @@ class StegastatterApplication:
                                            "Select where to save the Stegged Image",
                                            filter=IMAGE_FILTER)[0]
 
-        self.validate_file_path(path, False)
+        try:
+            self.validate_file_path(path, False)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_stegged_output_path = path
         self.selected_paths_set.add(self.selected_stegged_output_path)
@@ -235,7 +247,11 @@ class StegastatterApplication:
                                            "Select a file to embed into an image",
                                            filter=ANY_FILE_FILTER)[0]
 
-        self.validate_file_path(path, True)
+        try:
+            self.validate_file_path(path, True)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_message_input_path = path
         self.selected_paths_set.add(self.selected_message_input_path)
@@ -248,7 +264,11 @@ class StegastatterApplication:
                                            "Select where to save the extracted data",
                                            filter=ANY_FILE_FILTER)[0]
 
-        self.validate_file_path(path, False)
+        try:
+            self.validate_file_path(path, False)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_message_output_path = path
         self.selected_paths_set.add(self.selected_message_output_path)
@@ -262,7 +282,11 @@ class StegastatterApplication:
                                            "for this image",
                                            filter=BIN_FILE_FILTER)[0]
 
-        self.validate_file_path(path, True)
+        try:
+            self.validate_file_path(path, True)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_token_input_path = path
         self.selected_paths_set.add(self.selected_token_input_path)
@@ -276,7 +300,11 @@ class StegastatterApplication:
                                            "algorithm parameters",
                                            filter=BIN_FILE_FILTER)[0]
 
-        self.validate_file_path(path, False)
+        try:
+            self.validate_file_path(path, False)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_token_output_path = path
         self.selected_paths_set.add(self.selected_token_output_path)
@@ -289,7 +317,11 @@ class StegastatterApplication:
                                            "Select the first image to compare",
                                            filter=IMAGE_FILTER)[0]
 
-        self.validate_file_path(path, True)
+        try:
+            self.validate_file_path(path, True)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_image_diff_input_1 = path
         self.selected_paths_set.add(self.selected_image_diff_input_1)
@@ -302,7 +334,11 @@ class StegastatterApplication:
                                            "Select the second image to compare",
                                            filter=IMAGE_FILTER)[0]
 
-        self.validate_file_path(path, True)
+        try:
+            self.validate_file_path(path, True)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_image_diff_input_2 = path
         self.selected_paths_set.add(self.selected_image_diff_input_2)
@@ -316,7 +352,11 @@ class StegastatterApplication:
                                            "the provided images",
                                            filter=IMAGE_FILTER)[0]
 
-        self.validate_file_path(path, False)
+        try:
+            self.validate_file_path(path, False)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_image_diff_output_path = path
         self.selected_paths_set.add(self.selected_image_diff_output_path)
@@ -329,7 +369,11 @@ class StegastatterApplication:
                                                 "Select where to save the sliced bit planes of the "
                                                 "provided image")
 
-        self.validate_file_path(path, False)
+        try:
+            self.validate_file_path(path, False)
+        except (InvalidParametersError, MissingParametersError) as e:
+            multiprocessing.get_logger().warn(e.__str__())
+            return
 
         self.selected_bit_plane_slicing_output_folder_path = path
         self.selected_paths_set.add(self.selected_bit_plane_slicing_output_folder_path)
