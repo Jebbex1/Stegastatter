@@ -1,4 +1,5 @@
 import multiprocessing
+from math import log2, ceil
 from typing import Generator, Any
 
 from server.steganography.bit_operations_utils import bits_to_bytes, bit_list_to_int, bytes_to_bit_list, \
@@ -28,7 +29,7 @@ class LSBImage:
         if self.image.width > IMAGE_MAX_WIDTH or self.image.height > IMAGE_MAX_HEIGHT:
             raise ImageTooBigError(f"Image dimentions {self.image.size} are bigger in at least one dimention from the "
                                    f"limit {IMAGE_MAX_WIDTH}, {IMAGE_MAX_HEIGHT}")
-        self.iv_bit_len = len(bin(self.image.width*self.image.height*len(self.image.getbands())*sacrificed_bits)[2:])
+        self.iv_bit_len = ceil(log2(self.image.width*self.image.height*len(self.image.getbands())*sacrificed_bits))
         self.max_bits_per_byte = sacrificed_bits
 
         if not 0 < self.max_bits_per_byte <= 8:

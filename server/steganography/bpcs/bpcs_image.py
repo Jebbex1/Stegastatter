@@ -23,29 +23,19 @@ class BPCSImage:
         update_logger = multiprocessing.get_logger()
         self.image_bytes = image_bytes
         self.as_gray = as_cgc
-        self.num_of_bits_per_layer = 8
         self.pixels = self.read()
         update_logger.info(f"Loaded image as array with shape {self.pixels.shape}")
 
     def read(self) -> np.ndarray:
-        """
-        Loads the image at the image path, converts it to an array describing the pixels, then converts it into a bit
-        plane.
-        :return: bit planes that describe the images pixels
-        """
         img = open_image_from_bytes(self.image_bytes)
         if img.width > IMAGE_MAX_WIDTH or img.height > IMAGE_MAX_HEIGHT:
             raise ImageTooBigError(f"Image dimentions {img.size} are bigger in at least one dimention from the limit "
                                    f"{IMAGE_MAX_WIDTH}, {IMAGE_MAX_HEIGHT}")
         pixels = image_to_array(img)
-        pixels = BitPlane(pixels, self.as_gray).slice(self.num_of_bits_per_layer)
+        pixels = BitPlane(pixels, self.as_gray).slice()
         return pixels
 
     def export(self, pixels: np.ndarray) -> bytes:
-        """
-        Writes the given image pixels to the given path.
-        :param pixels: the pixels that describe the image we want to write
-        """
         update_logger = multiprocessing.get_logger()
         pixels = BitPlane(pixels, self.as_gray).stack()
         img = array_to_image(pixels)

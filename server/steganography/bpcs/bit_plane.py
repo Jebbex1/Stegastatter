@@ -99,7 +99,7 @@ class BitPlane:
     """
     The class that manages conversion from Pure Binary Code to Canonical Gray Code and back.
     """
-    def __init__(self, pixel_array: np.ndarray, gray=False):
+    def __init__(self, pixel_array: np.ndarray, gray=True):
         """
         Initializes a BitPlane object.
         :param pixel_array: an array that describes the pixels of an image
@@ -108,23 +108,22 @@ class BitPlane:
         self.arr = pixel_array
         self.gray = gray
 
-    def slice(self, bit_num: int) -> np.ndarray:
+    def slice(self) -> np.ndarray:
         """
         Converts the values in self.arr into binary, so that every element in i,j now contains a bit-list that
         describes the decimal value instead the decimal value itself; every binary value has bit_num bits. Also,
         converts the self.arr into CGC if self.gray is True.
         Keeps the shape of self.arr.
-        :param bit_num: the number of bits that each binary value should have
         :return: the converted numpy ndarray
         """
         update_logger = multiprocessing.get_logger()
         update_logger.info("Slicing image into bit plane blocks...")
 
         # reshape to a 1d list binary bit vals
-        base_array = np.array([decimal_to_bit_list(i, bit_num) for i in self.arr.reshape(-1)])
+        base_array = np.array([decimal_to_bit_list(i, 8) for i in self.arr.reshape(-1)])
 
         # reshape back to the same shape as the og array with an added dimension for the bit list
-        temp_array = np.reshape(base_array, self.arr.shape + (bit_num,))
+        temp_array = np.reshape(base_array, self.arr.shape + (8,))
         if self.gray:
             temp_array = pbc_to_cgc(temp_array)
         return temp_array

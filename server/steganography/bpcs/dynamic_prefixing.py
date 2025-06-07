@@ -49,7 +49,7 @@ def bits_to_prefixed_blocks(bits: list[bool], block_shape: tuple[int, int], min_
     :param bits: the array of data bits
     :param block_shape: the shape of each constructed block
     :param min_alpha: the minimum complexity coefficient of each block
-    :return:
+    :return: the prefixed blocks constructed from the bits
     """
     blocks = []
     while len(bits) > 0:
