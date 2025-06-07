@@ -146,12 +146,11 @@ class StegastatterApplication:
             self.start_button.setText("Stop")
             self.initiate_steganography_action()
         else:
-            if self.client_connection is not None:
-                self.client_connection.initiate_terminatation_protocol()
+            self.safe_close()
             self.start_button.setText("Start")
 
     def initiate_steganography_action(self):
-        self.client_connection = ClientConnection(SERVER_ADDRESS, threading.Lock())
+        self.client_connection = ClientConnection(SERVER_ADDRESS)
         try:
             match self.selected_algorithm_profile:
                 case AlgorithmProfiles.LSB_EMBED:

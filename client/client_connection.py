@@ -30,14 +30,13 @@ def new_server_connection(server_ip: str):
 
 
 class ClientConnection:
-    def __init__(self, server_ip: str, thread_lock: threading.Lock):
+    def __init__(self, server_ip: str):
         self.server_ip = server_ip
-        self.thread_lock = thread_lock
         self.skt: socket.socket | None = None
         self.running = True
 
     def synced_thread_recv_packet(self) -> PacketInfo:
-        if self.thread_lock.locked():
+        if not self.running:
             self.skt.close()
             exit(0)
 
@@ -48,7 +47,7 @@ class ClientConnection:
             exit(0)
 
     def synced_thread_send_packet(self, packet: bytes) -> None:
-        if self.thread_lock.locked():
+        if not self.running:
             self.skt.close()
             exit(0)
 
@@ -59,9 +58,7 @@ class ClientConnection:
             exit(0)
 
     def initiate_terminatation_protocol(self):
-        self.thread_lock.acquire()
-        if self.skt is not None and self.running:
-            self.skt.settimeout(0.001)
+        self.running = False
 
     def end_of_thread(self):
         self.running = False
@@ -88,11 +85,12 @@ class ClientConnection:
             request_packet = build_packet("100", headers=params_dict, body=vessel_image_bytes)
             message_packet = build_packet("000", body=open(message_file_path, "rb").read())
 
-            self.synced_thread_send_packet(self.skt, request_packet)
-            self.synced_thread_send_packet(self.skt, message_packet)
+            self.synced_thread_send_packet(request_packet)
+
+            self.synced_thread_send_packet(message_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(self.skt)
+                packet = self.synced_thread_recv_packet()
 
                 match packet.code:
                     case "000":
@@ -141,11 +139,12 @@ class ClientConnection:
             request_packet = build_packet("101", headers=params_dict, body=vessel_image_bytes)
             message_packet = build_packet("000", body=open(message_file_path, "rb").read())
 
-            self.synced_thread_send_packet(self.skt, request_packet)
-            self.synced_thread_send_packet(self.skt, message_packet)
+            self.synced_thread_send_packet(request_packet)
+
+            self.synced_thread_send_packet(message_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(self.skt)
+                packet = self.synced_thread_recv_packet()
 
                 match packet.code:
                     case "000":
@@ -186,11 +185,12 @@ class ClientConnection:
             request_packet = build_packet("120", body=stegged_image_bytes)
             token_packet = build_packet("000", body=token_bytes)
 
-            self.synced_thread_send_packet(self.skt, request_packet)
-            self.synced_thread_send_packet(self.skt, token_packet)
+            self.synced_thread_send_packet(request_packet)
+
+            self.synced_thread_send_packet(token_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(self.skt)
+                packet = self.synced_thread_recv_packet()
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted exctracing request!")
@@ -232,10 +232,10 @@ class ClientConnection:
             }
             request_packet = build_packet("140", headers=headers, body=image_bytes)
 
-            self.synced_thread_send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(request_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(self.skt)
+                packet = self.synced_thread_recv_packet()
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted BPCS capacity check request!")
@@ -281,10 +281,10 @@ class ClientConnection:
             }
             request_packet = build_packet("141", headers=headers, body=image_bytes)
 
-            self.synced_thread_send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(request_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(self.skt)
+                packet = self.synced_thread_recv_packet()
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted LSB capacity check request!")
@@ -324,10 +324,10 @@ class ClientConnection:
             image_bytes = get_image_bytes(image_path)
 
             request_packet = build_packet("160", body=image_bytes)
-            self.synced_thread_send_packet(self.skt, request_packet)
+            self.synced_thread_send_packet(request_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(self.skt)
+                packet = self.synced_thread_recv_packet()
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted BPCS capacity check request!")
@@ -366,11 +366,12 @@ class ClientConnection:
             request_packet = build_packet("161", headers={"show-exact-diff": str(int(exact_diff))}, body=image1_bytes)
             second_image_packet = build_packet("000", body=image2_bytes)
 
-            self.synced_thread_send_packet(self.skt, request_packet)
-            self.synced_thread_send_packet(self.skt, second_image_packet)
+            self.synced_thread_send_packet(request_packet)
+
+            self.synced_thread_send_packet(second_image_packet)
 
             while True:
-                packet = self.synced_thread_recv_packet(self.skt)
+                packet = self.synced_thread_recv_packet()
                 match packet.code:
                     case "200":
                         status_logger.info("Server accepted image difference calculation request!")
