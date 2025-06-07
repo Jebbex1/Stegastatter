@@ -1,5 +1,10 @@
+import sys
+
 from server.steganography_server import Server
 
 if __name__ == '__main__':
-    s = Server(False)
+    record_secrets = False
+    if len(sys.argv) > 1:
+        record_secrets = sys.argv[1] == '--rec-secrets'
+    s = Server(record_secrets)
     s.start()
