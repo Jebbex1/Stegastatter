@@ -1,0 +1,76 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.9 Chrome/134.0.6998.205 Electron/35.4.0 Safari/537.36" version="27.0.9">
+  <diagram name="Page-1" id="2YBvvXClWsGukQMizWep">
+    <mxGraphModel dx="1181" dy="714" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="aM9ryv3xv72pqoxQDRHE-1" value="Server" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" parent="1" vertex="1">
+          <mxGeometry x="350" y="80" width="100" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="aM9ryv3xv72pqoxQDRHE-5" value="Client" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" parent="1" vertex="1">
+          <mxGeometry x="590" y="80" width="100" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-10" style="edgeStyle=elbowEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;elbow=vertical;curved=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="405" y="185" as="sourcePoint" />
+            <mxPoint x="635" y="185" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-11" value="Status update packet" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="w-ThYg-1MT-Xx6KkiGot-10">
+          <mxGeometry x="0.2058" y="2" relative="1" as="geometry">
+            <mxPoint x="-24" y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="aM9ryv3xv72pqoxQDRHE-2" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" parent="1" vertex="1">
+          <mxGeometry x="395" y="150" width="10" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-5" style="edgeStyle=elbowEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;elbow=vertical;curved=0;" edge="1" parent="1" source="aM9ryv3xv72pqoxQDRHE-6">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="705" y="155" as="sourcePoint" />
+            <mxPoint x="405" y="155" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-6" value="The connection sequence up&amp;nbsp;&lt;div&gt;to status updates&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="w-ThYg-1MT-Xx6KkiGot-5">
+          <mxGeometry x="-0.2431" relative="1" as="geometry">
+            <mxPoint x="-31" y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-13" style="edgeStyle=elbowEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;elbow=vertical;curved=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="aM9ryv3xv72pqoxQDRHE-6" target="w-ThYg-1MT-Xx6KkiGot-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="aM9ryv3xv72pqoxQDRHE-6" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" parent="1" vertex="1">
+          <mxGeometry x="635" y="150" width="10" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="w-ThYg-1MT-Xx6KkiGot-2" target="w-ThYg-1MT-Xx6KkiGot-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-2" value="&lt;span style=&quot;font-size: 14px;&quot;&gt;The per-client status update logger gets called&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=0;fillColor=none;fontColor=#000000;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="20" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="w-ThYg-1MT-Xx6KkiGot-3" target="w-ThYg-1MT-Xx6KkiGot-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-3" value="&lt;span style=&quot;font-size: 14px;&quot;&gt;A function that is connected to the logger is called and is passed the LogRecord Object&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=0;fillColor=none;fontColor=#000000;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry y="150" width="200" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w-ThYg-1MT-Xx6KkiGot-4" target="aM9ryv3xv72pqoxQDRHE-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="178" />
+              <mxPoint x="380" y="178" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-4" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;The function triggers a status update packet&amp;nbsp;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=0;fillColor=none;fontColor=#000000;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="250" y="138.75" width="90" height="77.5" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-12" value="&lt;span style=&quot;font-size: 14px;&quot;&gt;The client updates the status box with the same logger-based method&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=0;fillColor=none;fontColor=#000000;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="700" y="150" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="w-ThYg-1MT-Xx6KkiGot-15" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;The Status Update Mechanism&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=0;fillColor=none;fontColor=#000000;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="295" y="10" width="210" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
