@@ -1,11 +1,11 @@
 import multiprocessing
 import numpy as np
 
-from bpcs.block_operations import bytes_to_blocks
-from bpcs.core import calc_bpcs_complexity_coefficient, conjugate
-from bpcs.initilization_vector import build_iv_blocks, build_conjugation_blocks
-from errors import BPCSError, BPCSCapacityError
-from bpcs.capacity import calculate_embedding_blocks_num, collect_accepted_blocks
+from .block_operations import bytes_to_blocks
+from .core import calc_bpcs_complexity_coefficient, conjugate
+from .initilization_vector import build_iv_blocks, build_conjugation_blocks
+from ..errors import BPCSError, BPCSCapacityError
+from .capacity import calculate_embedding_blocks_num, collect_accepted_blocks
 
 
 def get_message_blocks_from_bytes(message: bytes) -> tuple[np.ndarray, int]:

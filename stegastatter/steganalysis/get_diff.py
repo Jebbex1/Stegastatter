@@ -2,7 +2,7 @@ import io
 import multiprocessing
 from PIL import Image
 
-from image_utils import open_image_from_bytes
+from ..image_utils import open_image_from_bytes
 
 
 def show_diff(img1_bytes: bytes, img2_bytes: bytes, exact_diff: bool) -> tuple[tuple[int, int, int], bytes]:
@@ -27,9 +27,9 @@ def show_diff(img1_bytes: bytes, img2_bytes: bytes, exact_diff: bool) -> tuple[t
             if p1 != p2:
                 diff_pixels_num += 1
 
-                r = abs(p1[0] - p2[0])
-                g = abs(p1[1] - p2[1])
-                b = abs(p1[2] - p2[2])
+                r = abs(p1[0] - p2[0]) # type: ignore
+                g = abs(p1[1] - p2[1]) # type: ignore
+                b = abs(p1[2] - p2[2]) # type: ignore
 
                 r_diff = max(r, r_diff)
                 g_diff = max(g, g_diff)

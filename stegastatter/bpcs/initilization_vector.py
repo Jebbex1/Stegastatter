@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from bpcs.dynamic_prefixing import get_prefix_length, bits_to_prefixed_blocks, \
+from .dynamic_prefixing import get_prefix_length, bits_to_prefixed_blocks, \
     get_data_from_prefixed_blocks
 
 

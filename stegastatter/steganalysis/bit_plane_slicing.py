@@ -4,7 +4,7 @@ from typing import Generator, Any
 import numpy as np
 from PIL import Image
 
-from image_utils import open_image_from_bytes
+from ..image_utils import open_image_from_bytes
 
 
 def slice_rgb_bit_planes(image_bytes: bytes) -> Generator[tuple[str, bytes], Any, None]:
@@ -35,6 +35,6 @@ def slice_rgb_bit_planes(image_bytes: bytes) -> Generator[tuple[str, bytes], Any
                             case "B":
                                 bitplane_slice.putpixel((x, y), 1)
 
-            image_bytes = io.BytesIO()
+            image_bytes_io = io.BytesIO()
             bitplane_slice.save(image_bytes, format="PNG")
-            yield slice_name, image_bytes.getvalue()
+            yield slice_name, image_bytes_io.getvalue()

@@ -2,10 +2,10 @@ import multiprocessing
 from math import log2, ceil
 from typing import Generator, Any
 
-from bit_operations_utils import bits_to_bytes, bit_list_to_int, bytes_to_bit_list, \
+from ..bit_operations_utils import bits_to_bytes, bit_list_to_int, bytes_to_bit_list, \
     bitlist_str_to_list
-from image_utils import open_image_from_bytes
-from errors import LSBError, LSBCapacityError
+from ..image_utils import open_image_from_bytes
+from ..errors import LSBError, LSBCapacityError
 
 # Mask used to put one (ex:1->00000001, 2->00000010) associated with OR bitwise
 TRUE_BIT_MASK_VALUES = [1, 2, 4, 8, 16, 32, 64, 128]
@@ -69,7 +69,7 @@ class LSBImage:
 
     def put_binary_value(self, bits: list[bool] | Generator[bool, Any, None]):
         for bit in bits:
-            pixel = list(self.image.getpixel((self.cursor_width, self.cursor_height)))
+            pixel = list(self.image.getpixel((self.cursor_width, self.cursor_height))) # type: ignore
             byte_value = int(pixel[self.cursor_channel])
             if bit:
                 pixel[self.cursor_channel] = byte_value | self.one_mask  # bitwise OR with one_mask
@@ -80,7 +80,7 @@ class LSBImage:
             self.increment_cursor()
 
     def read_bit(self) -> bool:
-        value_byte = self.image.getpixel((self.cursor_width, self.cursor_height))[self.cursor_channel]
+        value_byte = self.image.getpixel((self.cursor_width, self.cursor_height))[self.cursor_channel] # type: ignore
         value_byte = int(value_byte) & self.one_mask
         self.increment_cursor()
         if value_byte > 0:

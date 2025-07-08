@@ -4,10 +4,10 @@ import random
 import struct
 from enum import IntEnum
 
-from errors import TokenError
-from content_wrapper.aes_gcm import encrypt, decrypt
-from content_wrapper.reed_solomon import pad, unpad
-from content_wrapper.seeded_shuffler import shuffle_bytes, unshuffle_bytes
+from ..errors import TokenError
+from .aes_gcm import encrypt, decrypt
+from .reed_solomon import pad, unpad
+from .seeded_shuffler import shuffle_bytes, unshuffle_bytes
 
 """
 Every parameter but the key has a constant length due to its' algorithms restraints:

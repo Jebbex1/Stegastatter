@@ -2,10 +2,10 @@ import multiprocessing
 
 import numpy as np
 
-from bpcs.bit_plane import BitPlane
-from bpcs.extract import extract_message_from_vessel
-from bpcs.embed import embed_message_in_vessel
-from image_utils import open_image_from_bytes, image_to_array, array_to_image, image_to_bytes
+from .bit_plane import BitPlane
+from .extract import extract_message_from_vessel
+from .embed import embed_message_in_vessel
+from ..image_utils import open_image_from_bytes, image_to_array, array_to_image, image_to_bytes
 
 
 class BPCSImage:

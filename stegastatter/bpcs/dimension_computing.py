@@ -1,10 +1,10 @@
 import multiprocessing
 from typing import Generator, Any
 
-from errors import BPCSError
+from ..errors import BPCSError
 
 
-def compute_segment_division_indices(total_length: int, segment_length: int) -> list[zip]:
+def compute_segment_division_indices(total_length: int, segment_length: int) -> list[tuple[int, Any]]:
     """
     Divides a range of length total_length into separate segments of all length segment_length. Leaves out any segments
     that don't have length of segment_length (if total_length%segment_length != 0 then we have segments that aren't of
@@ -23,7 +23,7 @@ def compute_segment_division_indices(total_length: int, segment_length: int) -> 
 
 
 def compute_all_block_indices(image_shape: tuple[int, int, int, int],
-                              block_shape: tuple[int, int]) -> Generator[list[slice], Any, None]:
+                              block_shape: tuple[int, int]) -> Generator[list[int | slice], Any, Any]:
     """
     Computes every possible block location in an image of shape (x, y, channel, bit-plane index).
     :param image_shape: an array describing the image to compute all grid dimensions from

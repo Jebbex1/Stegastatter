@@ -2,7 +2,7 @@ import math
 from random import choices
 import numpy as np
 
-from bpcs.core import calc_bpcs_complexity_coefficient
+from .core import calc_bpcs_complexity_coefficient
 
 
 def get_prefix_length(block_area: int, min_alpha: float) -> int:

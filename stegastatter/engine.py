@@ -1,12 +1,12 @@
-from bpcs.bpcs_image import BPCSImage
-from bpcs.embed import get_message_blocks_from_bytes
-from bpcs.capacity import calculate_maximum_capacity
-from image_utils import image_to_bytes
-from lsb.lsb_image import LSBImage
-from content_wrapper.wrapper import wrap_bpcs, get_bpcs_token_info, wrap_lsb, get_lsb_token_info, \
-    unwrap, get_max_unwapped_length
-from steganalysis.bit_plane_slicing import slice_rgb_bit_planes
-from steganalysis.get_diff import show_diff
+from .bpcs.bpcs_image import BPCSImage
+from .bpcs.embed import get_message_blocks_from_bytes
+from .bpcs.capacity import calculate_maximum_capacity
+from .image_utils import image_to_bytes
+from .lsb.lsb_image import LSBImage
+from .content_wrapper.wrapper import wrap_bpcs, get_bpcs_token_info, wrap_lsb, get_lsb_token_info, \
+     unwrap, get_max_unwapped_length
+from .steganalysis.bit_plane_slicing import slice_rgb_bit_planes
+from .steganalysis.get_diff import show_diff
 
 
 def bpcs_embed(source_image_bytes: bytes, message: bytes, key: str, ecc_block_size: int = 255,

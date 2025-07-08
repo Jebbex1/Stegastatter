@@ -3,7 +3,7 @@ import multiprocessing
 from typing import Generator, Callable
 import numpy as np
 
-from errors import BPCSError
+from ..errors import BPCSError
 
 
 def xor_lists(a: list[bool], b: list[bool]) -> list[bool]:
@@ -145,6 +145,6 @@ class BitPlane:
                 yield ind
 
         update_logger.info("Stacking bit plane blocks into an image...")
-        temp_array = np.reshape([bit_list_to_decimal(temp_array[ind]) for ind in iterate_all_but_last_dim(temp_array)],
+        temp_array = np.reshape([bit_list_to_decimal(temp_array[ind].tolist()) for ind in iterate_all_but_last_dim(temp_array)],
                                 temp_array.shape[:-1])
         return temp_array

@@ -2,7 +2,7 @@ import hashlib
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
-from errors import ContentWrapperError
+from ..errors import ContentWrapperError
 
 
 def encrypt(plaintext: bytes, key: bytes) -> tuple[bytes, bytes, bytes, bytes, bytes]:
