@@ -6,3 +6,9 @@ A theoretical overview for the concepts in this project can be found [here](http
 ## Usage Notes
 This module is unsafe in reguard to errror handling. If the functions of this module are called with improper parameters / with invalid data (e.g. attempting to extract data from an image with no data hidden in it), errors will be raised.
 Consult the errors.py file for info on different errors.
+
+## Instellation
+As of 1.0.2, this module is available only on PyPI, instellation via pip:
+```
+pip install stegastatter
+```
