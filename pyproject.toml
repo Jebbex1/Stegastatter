@@ -1,6 +1,6 @@
 [project]
 name = "Stegastatter"
-version = "1.0.3"
+version = "1.0.4"
 description = "A steganography engine"
 authors = [
     {name = "Jebbex1"}

@@ -36,5 +36,5 @@ def slice_rgb_bit_planes(image_bytes: bytes) -> Generator[tuple[str, bytes], Any
                                 bitplane_slice.putpixel((x, y), 1)
 
             image_bytes_io = io.BytesIO()
-            bitplane_slice.save(image_bytes, format="PNG")
+            bitplane_slice.save(image_bytes_io, format="PNG")
             yield slice_name, image_bytes_io.getvalue()
