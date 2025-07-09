@@ -3,3 +3,6 @@ from .engine import bpcs_embed, bpcs_extract, bpcs_calculate_max_capacity, lsb_e
 from .errors import ContentWrapperError, TokenError, SteganographyError, BPCSError, BPCSCapacityError, \
                     BPCSEmbedError, BPCSExtractError, LSBError, LSBCapacityError, LSBEmbedError, \
                     LSBExtractError
+from .content_wrapper.wrapper import Algorithms
+from .bpcs.bpcs_image import BPCSImage
+from .lsb.lsb_image import LSBImage

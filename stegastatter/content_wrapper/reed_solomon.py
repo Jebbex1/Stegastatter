@@ -43,4 +43,4 @@ def unpad(padded: bytes, block_size: int, ecc_symbol_num: int) -> bytes:
     if ecc_symbol_num >= block_size:
         raise ReedSolomonError(f"ECC Symbol num is larger than the block size: {ecc_symbol_num} > {block_size}")
     rsc = RSCodec(ecc_symbol_num, nsize=block_size)
-    return rsc.decode(padded)[0]
+    return rsc.decode(padded)[0] # type: ignore
